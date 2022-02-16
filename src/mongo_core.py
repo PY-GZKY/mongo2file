@@ -65,17 +65,16 @@ class MongoEngine:
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
-            print("folder_path:", folder_path)
+            # print("folder_path:", folder_path)
             if folder_path is None:
                 folder_path = '.'
             elif not os.path.exists(folder_path):
                 os.makedirs(folder_path)
-                ...
             self.to_csv_s_(folder_path)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, 'all csv')
             return result_
 
-    def to_excel(self, query: dict, filename: str = None, _id: bool = False, limit: int = 20):
+    def to_excel(self, query: dict, filename: str = None, folder_path: str = None, _id: bool = False, limit: int = 20):
         if not isinstance(query, dict):
             raise TypeError('query must be of Dict type.')
         if self.collection_:
@@ -83,16 +82,21 @@ class MongoEngine:
                 filename = f'{self.collection}_{to_str_datetime()}'
             doc_list_ = list(self.collection_.find(query).limit(limit))
             data = DataFrame(doc_list_)
-            data.to_excel(excel_writer=f'{filename}.xlsx', sheet_name=filename, index=False, encoding=PANDAS_ENCODING)
+            data.to_excel(excel_writer=f'{folder_path}/{filename}.xlsx', sheet_name=filename, index=False,
+                          encoding=PANDAS_ENCODING)
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, 'excel')
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
-            self.to_excel_s_()
-            result_ = ECHO_INFO.format(Fore.GREEN, self.collection, 'excel')
+            if folder_path is None:
+                folder_path = '.'
+            elif not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            self.to_excel_s_(folder_path)
+            result_ = ECHO_INFO.format(Fore.GREEN, self.collection, 'all excel')
             return result_
 
-    def to_json(self, query: dict, filename: str = None, _id: bool = False, limit: int = 20):
+    def to_json(self, query: dict, filename: str = None, folder_path: str = None, _id: bool = False, limit: int = 20):
         if not isinstance(query, dict):
             raise TypeError('query must be of Dict type.')
         if self.collection_:
@@ -106,7 +110,13 @@ class MongoEngine:
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
-            self.to_json_s_()
+            if folder_path is None:
+                folder_path = '.'
+            elif not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            self.to_json_s_(folder_path)
+            result_ = ECHO_INFO.format(Fore.GREEN, self.collection, 'all json')
+            return result_
 
     def to_pickle(self, query: dict, filename: str = None, _id: bool = False, limit: int = 20):
         if not isinstance(query, dict):
@@ -166,25 +176,25 @@ class MongoEngine:
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
 
-    def no_collection_to_csv_(self, collection_: str, filename: str, folder_path:str, _id: bool = False):
+    def no_collection_to_csv_(self, collection_: str, filename: str, folder_path: str, _id: bool = False):
         if collection_:
             doc_list_ = list(self.db_[collection_].find({}, {"_id": int(_id)}))
             data = DataFrame(doc_list_)
             data.to_csv(path_or_buf=f'{folder_path}/{filename}.csv', index=False, encoding=PANDAS_ENCODING)
 
-    def no_collection_to_excel_(self, collection_: str, filename: str, _id: bool = False):
+    def no_collection_to_excel_(self, collection_: str, filename: str, folder_path: str, _id: bool = False):
         if collection_:
             doc_list_ = list(self.db_[collection_].find({}))
             data = DataFrame(doc_list_)
-            data.to_excel(excel_writer=f'{filename}.xlsx', index=False, encoding=PANDAS_ENCODING)
+            data.to_excel(excel_writer=f'{folder_path}/{filename}.xlsx', index=False, encoding=PANDAS_ENCODING)
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection)
             return result_
 
-    def no_collection_to_json_(self, collection_: str, filename: str, _id: bool = False):
+    def no_collection_to_json_(self, collection_: str, filename: str, folder_path: str, _id: bool = False):
         if collection_:
             doc_list_ = list(self.db_[collection_].find({}))
             data = {'RECORDS': doc_list_}
-            with open(f'{filename}.json', 'w', encoding="utf-8") as f:
+            with open(f'{folder_path}/{filename}.json', 'w', encoding="utf-8") as f:
                 f.write(serialize_obj(data))
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection)
             return result_
@@ -192,11 +202,11 @@ class MongoEngine:
     def to_csv_s_(self, folder_path: str):
         self.concurrent_(self.no_collection_to_csv_, self.collection_names, folder_path)
 
-    # def to_excel_s_(self):
-    #     self.concurrent_(self.no_collection_to_excel_, self.collection_names)
-    #
-    # def to_json_s_(self):
-    #     self.concurrent_(self.no_collection_to_json_, self.collection_names)
+    def to_excel_s_(self, folder_path: str):
+        self.concurrent_(self.no_collection_to_excel_, self.collection_names, folder_path)
+
+    def to_json_s_(self, folder_path: str):
+        self.concurrent_(self.no_collection_to_json_, self.collection_names, folder_path)
 
     def concurrent_(self, func, collection_names, folder_path):
         with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
