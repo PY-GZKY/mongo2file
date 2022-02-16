@@ -19,13 +19,17 @@ def setup_function():
     )
 
 
-# def test_to_csv_s_():
-#     result_ = M.to_csv(query={}, _id=False, folder_path='./_csv')
+def test_to_csv_s_():
+    result_ = M.to_csv(query={}, _id=False, folder_path='./_csv')
+    assert "successfully" in result_
+
+# def test_to_excel_s_():
+#     result_ = M.to_excel(query={}, _id=False, folder_path='./_excel')
 #     assert "successfully" in result_
 
-def test_to_excel_s_():
-    result_ = M.to_excel(query={}, _id=False, folder_path='./_excel')
-    assert "successfully" in result_
+# def test_to_json_s_():
+#     result_ = M.to_json(query={}, _id=False, folder_path='./_json')
+#     assert "successfully" in result_
 
 def teardown_function():
     ...

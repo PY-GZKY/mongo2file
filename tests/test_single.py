@@ -20,14 +20,14 @@ def setup_function():
     )
 
 
-def test_to_csv():
-    result_ = M.to_csv(query={}, _id=False)
-    assert "successfully" in result_
+# def test_to_csv():
+#     result_ = M.to_csv(query={}, _id=False)
+#     assert "successfully" in result_
 
 
-def test_to_excel():
-    result_ = M.to_excel(query={}, _id=False)
-    assert "successfully" in result_
+# def test_to_excel():
+#     result_ = M.to_excel(query={}, _id=False)
+#     assert "successfully" in result_
 
 
 # def test_to_json():
@@ -35,9 +35,9 @@ def test_to_excel():
 #     assert "successfully" in result_
 #
 #
-# def test_to_pickle():
-#     result_ = M.to_pickle(query={}, _id=False, filename="_")
-#     assert "successfully" in result_
+def test_to_pickle():
+    result_ = M.to_pickle(query={}, _id=False, filename="窝草",folder_path="./_pickle")
+    assert "successfully" in result_
 #
 #
 # def test_to_feather():
