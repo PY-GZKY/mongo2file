@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import datetime, os
+import datetime
+import os
 import decimal
 import getpass
 import json
@@ -36,7 +37,6 @@ def to_str_datetime():
     return datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S%f')
 
 
-
 def _alchemy_encoder(obj):
     if isinstance(obj, datetime.date):
         return obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -46,7 +46,7 @@ def _alchemy_encoder(obj):
         return str(obj)
 
 
-def serialize_obj(obj) :
+def serialize_obj(obj):
     if isinstance(obj, list):
         return json.dumps([dict(r) for r in obj], ensure_ascii=False, default=_alchemy_encoder)
     else:

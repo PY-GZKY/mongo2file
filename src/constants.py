@@ -24,4 +24,4 @@ TIME_ZONE = 'Asia/Shanghai'
 
 THREAD_POOL_MAX_WORKERS = 4
 
-ECHO_INFO = '{}[+] {} → exported {} successfully ... done'
+ECHO_INFO = '{}[+] {} exported successfully → {}'
