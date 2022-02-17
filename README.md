@@ -25,37 +25,37 @@ M = MongoEngine(
 
 
 def to_csv():
-    result_ = M.to_csv(query={}, _id=False)
+    result_ = M.to_csv()
     assert "successfully" in result_
 
 
 def to_excel():
-    result_ = M.to_excel(query={}, _id=False)
+    result_ = M.to_excel()
     assert "successfully" in result_
 
 
 def to_json():
-    result_ = M.to_excel(query={}, _id=False)
+    result_ = M.to_excel()
     assert "successfully" in result_
 
 
 def to_pickle():
-    result_ = M.to_pickle(query={}, _id=False)
+    result_ = M.to_pickle()
     assert "successfully" in result_
 
 
 def to_feather():
-    result_ = M.to_feather(query={}, _id=False)
+    result_ = M.to_feather()
     assert "successfully" in result_
 
 
 def to_parquet():
-    result_ = M.to_parquet(query={}, _id=False)
+    result_ = M.to_parquet()
     assert "successfully" in result_
 
 
 def to_hdf5():
-    result_ = M.to_hdf5(query={}, _id=False)
+    result_ = M.to_hdf5()
     assert "successfully" in result_
 ```
 
@@ -79,21 +79,21 @@ M = MongoEngine(
 
 
 def to_csv():
-    result_ = M.to_csv(query={}, _id=False)
+    result_ = M.to_csv()
     assert "successfully" in result_
 
 
 def to_excel():
-    result_ = M.to_excel(query={}, _id=False)
+    result_ = M.to_excel()
     assert "successfully" in result_
 
 
 def to_json():
-    result_ = M.to_json(query={}, _id=False)
+    result_ = M.to_json()
     assert "successfully" in result_
 ```
 
-`pickle`、`feather`、`parquet`、`jay`、`hdf5` 是 `Python` 序列化数据的一种文件格式, 它把数据转成二进制进行存储。从而大大减少的读写时间。
+`pickle`、`feather`、`parquet`、`hdf5` 是 `Python` 序列化数据的一种文件格式, 它把数据转成二进制进行存储。从而大大减少的读写时间。
 
 
 

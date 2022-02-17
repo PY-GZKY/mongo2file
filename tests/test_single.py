@@ -26,34 +26,34 @@ def test_to_csv():
     assert "successfully" in result_
 
 
-def test_to_excel():
-    result_ = M.to_excel(query={"区": "黄浦区"}, folder_path="_excel_single", filename="caonima.xlsx")
-    print(result_)
-    assert "successfully" in result_
-
-
-def test_to_json():
-    result_ = M.to_json(filename="caonima.json")
-    print(result_)
-    assert "successfully" in result_
-
-
-def test_to_pickle():
-    result_ = M.to_pickle(folder_path="./_pickle", filename="caonima.pkl")
-    print(result_)
-    assert "successfully" in result_
-
-
-def test_to_feather():
-    result_ = M.to_feather(query={"区": "黄浦区"}, folder_path="./_feather", filename="caonima.feather")
-    print(result_)
-    assert "successfully" in result_
-
-
-def test_to_parquet():
-    result_ = M.to_parquet(query={}, folder_path="./_parquet", filename="_.parquet")
-    print(result_)
-    assert "successfully" in result_
+# def test_to_excel():
+#     result_ = M.to_excel(query={"区": "黄浦区"}, folder_path="_excel_single", filename="caonima.xlsx")
+#     print(result_)
+#     assert "successfully" in result_
+#
+#
+# def test_to_json():
+#     result_ = M.to_json(filename="caonima.json")
+#     print(result_)
+#     assert "successfully" in result_
+#
+#
+# def test_to_pickle():
+#     result_ = M.to_pickle(folder_path="./_pickle", filename="caonima.pkl")
+#     print(result_)
+#     assert "successfully" in result_
+#
+#
+# def test_to_feather():
+#     result_ = M.to_feather(query={"区": "黄浦区"}, folder_path="./_feather", filename="caonima.feather")
+#     print(result_)
+#     assert "successfully" in result_
+#
+#
+# def test_to_parquet():
+#     result_ = M.to_parquet(query={}, folder_path="./_parquet", filename="_.parquet")
+#     print(result_)
+#     assert "successfully" in result_
 
 
 def teardown_function():

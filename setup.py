@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
-description = '一个用于 mongodb 数据库转换为各类文件格式的库'
-long_description = '一个用于 mongodb 数据库转换为各类文件格式的库'
+description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
+long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 
 setup(
     name='mongotrans',
@@ -35,7 +35,7 @@ setup(
     python_requires='>=3.7',
     author='PY-GZKY',
     author_email='341796767@qq.com',
-    url='https://github.com/PY-GZKY/fconversion',
+    url='https://github.com/PY-GZKY/mongotrans',
     license='Apache',
     packages=find_packages(),
     include_package_data=True,
@@ -53,6 +53,7 @@ setup(
         'python-dotenv==0.19.2',
         'python_dateutil==2.8.2',
         'setuptools==60.0.3',
+        'pyarrow==7.0.0',
     ],
 )
 
