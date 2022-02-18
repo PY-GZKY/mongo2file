@@ -5,7 +5,7 @@ long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格�
 
 setup(
     name='mongov',
-    version='1.0.1',
+    version='1.0.2',
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
