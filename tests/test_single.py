@@ -2,7 +2,8 @@ import os
 
 import dotenv
 import pytest
-from mongov.mongo_core import MongoEngine
+
+from mongov import MongoEngine
 
 dotenv.load_dotenv(verbose=True)
 
@@ -20,39 +21,39 @@ def setup_function():
 
 
 def test_to_csv():
-    result_ = M.to_csv(folder_path="_csv_single", filename="caonima.csv")
+    result_ = M.to_csv(folder_path="_csv_single")
     print(result_)
     assert "successfully" in result_
 
 
-# def test_to_excel():
-#     result_ = M.to_excel(query={"区": "黄浦区"}, folder_path="_excel_single", filename="caonima.xlsx")
-#     print(result_)
-#     assert "successfully" in result_
-#
-#
-# def test_to_json():
-#     result_ = M.to_json(filename="caonima.json")
-#     print(result_)
-#     assert "successfully" in result_
-#
-#
-# def test_to_pickle():
-#     result_ = M.to_pickle(folder_path="./_pickle", filename="caonima.pkl")
-#     print(result_)
-#     assert "successfully" in result_
-#
-#
-# def test_to_feather():
-#     result_ = M.to_feather(query={"区": "黄浦区"}, folder_path="./_feather", filename="caonima.feather")
-#     print(result_)
-#     assert "successfully" in result_
-#
-#
-# def test_to_parquet():
-#     result_ = M.to_parquet(query={}, folder_path="./_parquet", filename="_.parquet")
-#     print(result_)
-#     assert "successfully" in result_
+def test_to_excel():
+    result_ = M.to_excel(query={"_": "_"}, folder_path="_excel_single")
+    print(result_)
+    assert "successfully" in result_
+
+
+def test_to_json():
+    result_ = M.to_json(filename="caonima.json")
+    print(result_)
+    assert "successfully" in result_
+
+
+def test_to_pickle():
+    result_ = M.to_pickle(folder_path="./_pickle")
+    print(result_)
+    assert "successfully" in result_
+
+
+def test_to_feather():
+    result_ = M.to_feather(folder_path="./_feather")
+    print(result_)
+    assert "successfully" in result_
+
+
+def test_to_parquet():
+    result_ = M.to_parquet(folder_path="./_parquet")
+    print(result_)
+    assert "successfully" in result_
 
 
 def teardown_function():
