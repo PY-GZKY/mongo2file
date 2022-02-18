@@ -3,7 +3,7 @@ import os
 import warnings
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed, ALL_COMPLETED
 from typing import Optional
-import pandas as pd
+
 from colorama import init as colorama_init_, Fore
 from dotenv import load_dotenv
 from pandas import DataFrame
@@ -237,7 +237,6 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
 
-
     def no_collection_to_csv_(self, collection_: str, folder_path: str, _id: bool = False):
         if collection_:
             filename = f'{collection_}_{to_str_datetime()}.csv'
@@ -287,4 +286,3 @@ class MongoEngine:
         else:
             _ = folder_path
         return _
-
