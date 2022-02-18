@@ -4,7 +4,7 @@ description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的�
 long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 
 setup(
-    name='mongotrans',
+    name='mongov',
     version='1.0.0',
     description=description,
     long_description=long_description,
@@ -42,7 +42,7 @@ setup(
     zip_safe=True,
     entry_points="""
         [console_scripts]
-        mongotrans=src.cli:cli
+        mongov=src.cli:cli
     """,
     install_requires=[
         'click>=6.7',

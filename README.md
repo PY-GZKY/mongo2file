@@ -3,7 +3,7 @@
 ## 安装
 
 ```shell
-pip install mongotrans
+pip install mongov
 ```
 
 ## 基本用法
@@ -12,7 +12,7 @@ pip install mongotrans
 
 ```python
 import os
-from src.mongo_core import MongoEngine
+from src import MongoEngine
 
 M = MongoEngine(
     host=os.getenv('MONGO_HOST'),
