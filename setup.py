@@ -35,7 +35,7 @@ setup(
     python_requires='>=3.7',
     author='PY-GZKY',
     author_email='341796767@qq.com',
-    url='https://github.com/PY-GZKY/mongotrans',
+    url='https://github.com/PY-GZKY/mongov',
     license='Apache',
     packages=['src'], # find_packages(),
     include_package_data=True,
