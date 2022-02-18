@@ -288,19 +288,3 @@ class MongoEngine:
             _ = folder_path
         return _
 
-
-if __name__ == '__main__':
-    M = MongoEngine(
-        host=os.getenv('MONGO_HOST'),
-        port=int(os.getenv('MONGO_PORT')),
-        username=os.getenv('MONGO_USERNAME'),
-        password=os.getenv('MONGO_PASSWORD'),
-        database=os.getenv('MONGO_DATABASE'),
-        collection=os.getenv('MONGO_COLLECTION')
-    )
-    # M.to_csv(filename="_")
-    # M.to_excel()
-    # M.to_json()
-    # M.to_pickle()
-    # M.to_hdf5()
-    print(M.to_hdf5.__name__)
