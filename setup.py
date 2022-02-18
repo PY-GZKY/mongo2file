@@ -1,4 +1,5 @@
 from importlib.machinery import SourceFileLoader
+from pathlib import Path
 
 from setuptools import setup
 
@@ -6,6 +7,9 @@ description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的�
 long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 
 version = SourceFileLoader('version', 'mongov/version.py').load_module()
+readme = Path(__file__).parent / 'README.md'
+if readme.exists():
+    long_description = readme.read_text(encoding='utf-8')
 
 setup(
     name='mongov',
