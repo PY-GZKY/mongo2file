@@ -21,19 +21,19 @@ def setup_function():
 
 
 def test_to_csv():
-    result_ = M.to_csv(folder_path="_csv_single")
+    result_ = M.to_csv(folder_path="_csv")
     print(result_)
     assert "successfully" in result_
 
 
 def test_to_excel():
-    result_ = M.to_excel(query={"_": "_"}, folder_path="_excel_single")
+    result_ = M.to_excel(folder_path="_excel")
     print(result_)
     assert "successfully" in result_
 
 
 def test_to_json():
-    result_ = M.to_json(filename="caonima.json")
+    result_ = M.to_json(folder_path="./_json")
     print(result_)
     assert "successfully" in result_
 
