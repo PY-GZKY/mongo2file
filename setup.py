@@ -37,7 +37,7 @@ setup(
     author_email='341796767@qq.com',
     url='https://github.com/PY-GZKY/mongotrans',
     license='Apache',
-    packages=find_packages(),
+    packages=['src'], # find_packages(),
     include_package_data=True,
     zip_safe=True,
     entry_points="""
