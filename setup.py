@@ -36,7 +36,7 @@ setup(
     author='PY-GZKY',
     author_email='341796767@qq.com',
     url='https://github.com/PY-GZKY/mongov',
-    license='Apache',
+    license='MIT',
     packages=['mongov'],
     include_package_data=True,
     zip_safe=True,
