@@ -19,17 +19,17 @@ def setup_function():
     )
 
 
-def test_to_csv_s_():
+def test_to_csv():
     result_ = M.to_csv(folder_path='./_csv')
     assert "successfully" in result_
 
 
-def test_to_excel_s_():
+def test_to_excel():
     result_ = M.to_excel(folder_path='./_excel')
     assert "successfully" in result_
 
 
-def test_to_json_s_():
+def test_to_json():
     result_ = M.to_json(folder_path='./_json')
     assert "successfully" in result_
 
