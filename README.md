@@ -12,7 +12,7 @@ pip install mongov
 
 ```python
 import os
-from src import MongoEngine
+from mongov import MongoEngine
 
 M = MongoEngine(
     host=os.getenv('MONGO_HOST'),
@@ -63,7 +63,7 @@ def to_hdf5():
 
 ```python
 import os
-from src.mongo_core import MongoEngine
+from mongov.mongo_core import MongoEngine
 
 """
 作用于 MongoEngine 类未指定表名称时

@@ -5,7 +5,7 @@ long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格�
 
 setup(
     name='mongov',
-    version='1.0.0',
+    version='1.0.1',
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -37,12 +37,12 @@ setup(
     author_email='341796767@qq.com',
     url='https://github.com/PY-GZKY/mongov',
     license='Apache',
-    packages=['src'], # find_packages(),
+    packages=['mongov'],
     include_package_data=True,
     zip_safe=True,
     entry_points="""
         [console_scripts]
-        mongov=src.cli:cli
+        mongov=mongov.cli:cli
     """,
     install_requires=[
         'click>=6.7',

@@ -9,7 +9,7 @@ import uuid
 from bson import ObjectId
 from dateutil import tz
 
-from src.constants import TIME_ZONE
+from mongov.constants import TIME_ZONE
 
 
 def get_user_name():
