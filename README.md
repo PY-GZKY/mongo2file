@@ -63,7 +63,7 @@ def to_hdf5():
 
 ```python
 import os
-from mongov.mongo_core import MongoEngine
+from mongov import MongoEngine
 
 """
 作用于 MongoEngine 类未指定表名称时
@@ -93,7 +93,8 @@ def to_json():
     assert "successfully" in result_
 ```
 
-`pickle`、`feather`、`parquet`、`hdf5` 是 `Python` 序列化数据的一种文件格式, 它把数据转成二进制进行存储。从而大大减少的读写时间。
+`pickle`、`feather`、`parquet`、`hdf5` 是 `Python` 序列化数据的一种文件格式, 
+它把数据转成二进制进行存储。从而大大减少的读写时间。
 
 
 

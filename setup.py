@@ -1,11 +1,15 @@
-from setuptools import setup, find_packages
+from importlib.machinery import SourceFileLoader
+
+from setuptools import setup
 
 description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 
+version = SourceFileLoader('version', 'mongov/version.py').load_module()
+
 setup(
     name='mongov',
-    version='1.0.2',
+    version=version.__version__,
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -56,4 +60,3 @@ setup(
         'pyarrow==7.0.0',
     ],
 )
-
