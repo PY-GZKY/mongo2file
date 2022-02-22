@@ -1,6 +1,10 @@
 # -*- coding:utf-8 -*-
+import codecs
+import csv
+import math
 import os
 import timeit
+import uuid
 import warnings
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed, ALL_COMPLETED
 from typing import Optional
@@ -43,7 +47,7 @@ class MongoEngine:
             port=self.port,
             username=self.username,
             password=self.password,
-            maxPoolSize=None
+            maxPoolSize=200
         )
         self.db_ = self.mongo_core_[self.database]
         self.collection_names = self.db_.list_collection_names()
@@ -52,14 +56,10 @@ class MongoEngine:
         else:
             self.collection_ = None
 
-    def to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
+    def to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
+               is_block: bool = False, block_size: int = 1000):
         """
         :param query: dict type → Invalid when exporting multiple tables
-        :param folder_path:
-        :param filename:
-        :param _id:
-        :param limit:
-        :return:
         """
         if query is None:
             query = {}
@@ -72,39 +72,81 @@ class MongoEngine:
         folder_path_ = self.check_folder_path(folder_path)
 
         if self.collection_:
+            stats_ = self.db_.command('collstats', self.collection)
+            print(f'命名空间: {stats_.get("ns")}, '
+                  f'内存总大小: {round(stats_.get("size") / 1024, 2)} KB, '
+                  f'存储大小: {round(stats_.get("storageSize") / 1024, 2)} KB, '
+                  f'对象平均大小: {round(stats_.get("avgObjSize") / 1024, 2)} KB, '
+                  f'文档数: {stats_.get("count")}',
+                  )
+
+            # from pymongoarrow.monkey import patch_all
+            # patch_all()
+            # from pymongoarrow.api import Schema
+            # schema = Schema({})
+
             if filename is None:
                 filename = f'{self.collection}_{to_str_datetime()}.csv'
             start_ = timeit.default_timer()
 
-            doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
-                limit) if limit != -1 else self.collection_.find(query,
-                                                                 {"_id": 0, "comment_img": 0, "new_comment_img": 0})
-            stats_ = self.db_.command('collstats', self.collection)
-            print(stats_.get("size") / 1024)
-            doc_list = list(doc_objs_)
+            if is_block:
+                block_count_ = math.ceil(stats_.get("count") / block_size)
+                print('线程数: ', block_count_)
+                # start_ = timeit.default_timer()
+                self.coll_concurrent_(self.save_csv_, block_count_, block_size, folder_path_)
+                result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
+                stop_ = timeit.default_timer()
+                print(f'Time: {stop_ - start_}')
+            else:
+                doc_list = self.collection_.find(query, {'_id': 0}).limit(limit) \
+                    if limit != -1 else self.collection_.find(query, {'_id': 0})
 
-            """
-            [{"a":111,"b":222},{"a":111,"b":222}] -> [{"a":[111,111],"b":[222,222]}]
-            doc_list_ = [list(doc.values()) for doc in doc_list]
-            columns_ = list(doc_list[0].keys())
-            data = pl.DataFrame(doc_list_,columns=columns_)
-            data.to_csv(file=f'{folder_path_}/{filename}', has_header=True)
-            and fuck polars
-            """
+                """
+                todo polars
+                [{"a":111,"b":222},{"a":111,"b":222}] -> [{"a":[111,111],"b":[222,222]}]
+                doc_list_ = [list(doc.values()) for doc in doc_list]
+                columns_ = list(doc_list[0].keys())
+                data = pl.DataFrame(doc_list_,columns=columns_)
+                data.to_csv(file=f'{folder_path_}/{filename}', has_header=True)
+                
+                todo pandas
+                df_ = DataFrame(data=doc_list)
+                df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
+                """
 
-            df_ = DataFrame(data=doc_list)
-            df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
+                # todo csv
+                with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(list(dict(doc_list[0]).keys()))
+                    writer.writerows([list(dict(data_).values()) for data_ in doc_list])
 
-            result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
-
-            stop_ = timeit.default_timer()
-            print(f'Time: {stop_ - start_}')
+                result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
+                stop_ = timeit.default_timer()
+                print(f'Time: {stop_ - start_}')
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
             self.to_csv_s_(folder_path_)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
+
+    def save_csv_(self, pg, block_size_, folder_path_):
+        # print("线程启动 ...")
+        doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=20000).skip(pg * block_size_).limit(block_size_)
+        filename = f'{str(uuid.uuid4())}.csv'
+        with codecs.open(f'{folder_path_}/{filename}', 'w', encoding=PANDAS_ENCODING) as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(list(dict(doc_list_[0]).keys()))
+            writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
+        return f"{f'{folder_path_}/{filename}'} is ok"
+
+    def coll_concurrent_(self, func, black_count_, block_size_, folder_path_):
+        with ThreadPoolExecutor(max_workers=black_count_) as executor:
+            futures_ = [executor.submit(func, pg, block_size_, folder_path_) for pg in range(black_count_)]
+            wait(futures_, return_when=ALL_COMPLETED)
+            for future_ in as_completed(futures_):
+                if future_.done():
+                    print(future_.result())
 
     def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
         if query is None:

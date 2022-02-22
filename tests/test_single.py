@@ -16,12 +16,12 @@ def setup_function():
         username='admin',
         password='sanmaoyou_admin_',
         database='sm_admin_test',
-        collection='xhs_chengdu'
+        collection='comment'
     )
 
 
 def test_to_csv():
-    result_ = M.to_csv(folder_path="_csv")
+    result_ = M.to_csv(folder_path="_csv", is_block=True, block_size=20000)
     print(result_)
     assert "successfully" in result_
 

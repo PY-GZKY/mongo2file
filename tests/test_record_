@@ -1,0 +1,12 @@
+Singlethread
+命名空间: sm_admin_test.comment
+内存总大小: 149251.04 kb, 存储大小: 80524.0 kb, 对象平均大小: 0.86 kb, 文档数: 173504
+
+[+] sm_admin_test.comment exported successfully → _csv/comment_2022-02-22_143534671613.csv
+Time: 37.088116500000005
+
+[+] sm_admin_test.comment exported successfully → _csv/comment_2022-02-22_143804094669.csv
+Time: 36.2009137
+
+
+Multithreading
