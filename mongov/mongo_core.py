@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
+import timeit
 import warnings
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed, ALL_COMPLETED
 from typing import Optional
@@ -73,12 +74,31 @@ class MongoEngine:
         if self.collection_:
             if filename is None:
                 filename = f'{self.collection}_{to_str_datetime()}.csv'
+            start_ = timeit.default_timer()
+
             doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
-                limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
-            doc_list_ = list(doc_objs_)
-            data = DataFrame(doc_list_)
-            data.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
+                limit) if limit != -1 else self.collection_.find(query,
+                                                                 {"_id": 0, "comment_img": 0, "new_comment_img": 0})
+            stats_ = self.db_.command('collstats', self.collection)
+            print(stats_.get("size") / 1024)
+            doc_list = list(doc_objs_)
+
+            """
+            [{"a":111,"b":222},{"a":111,"b":222}] -> [{"a":[111,111],"b":[222,222]}]
+            doc_list_ = [list(doc.values()) for doc in doc_list]
+            columns_ = list(doc_list[0].keys())
+            data = pl.DataFrame(doc_list_,columns=columns_)
+            data.to_csv(file=f'{folder_path_}/{filename}', has_header=True)
+            and fuck polars
+            """
+
+            df_ = DataFrame(data=doc_list)
+            df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
+
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
+
+            stop_ = timeit.default_timer()
+            print(f'Time: {stop_ - start_}')
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
