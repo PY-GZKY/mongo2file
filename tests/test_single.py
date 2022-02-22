@@ -21,7 +21,7 @@ def setup_function():
 
 
 def test_to_csv():
-    result_ = M.to_csv(folder_path="_csv", is_block=True, block_size=20000)
+    result_ = M.to_csv(folder_path="_csv", is_block=False, block_size=10000)
     print(result_)
     assert "successfully" in result_
 
