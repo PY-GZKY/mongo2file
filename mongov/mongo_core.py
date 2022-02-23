@@ -94,7 +94,7 @@ class MongoEngine:
                 block_count_ = math.ceil(count_ / block_size)
                 print('线程数: ', block_count_)
                 # start_ = timeit.default_timer()
-                self.csv_coll_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
+                self.csv_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 stop_ = timeit.default_timer()
                 print(f'Time: {stop_ - start_}')
@@ -149,7 +149,7 @@ class MongoEngine:
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def csv_coll_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
+    def csv_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
         title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
         with alive_bar(black_count_, title=title_, bar="blocks") as bar:
             with ThreadPoolExecutor(max_workers=black_count_) as executor:
@@ -187,7 +187,7 @@ class MongoEngine:
                 # start_ = timeit.default_timer()
                 import xlsxwriter
                 f = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')  # 创建excel文件
-                self.excel_coll_concurrent_(self.save_excel_, f, self.collection, block_count_, block_size,folder_path_)
+                self.excel_concurrent_(self.save_excel_, f, self.collection, block_count_, block_size, folder_path_)
                 f.close()
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 stop_ = timeit.default_timer()
@@ -261,7 +261,7 @@ class MongoEngine:
                 '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
         return f'{Fore.GREEN} → {pg} is ok'
 
-    def excel_coll_concurrent_(self, func, f, collection_name, black_count_, block_size_, folder_path_):
+    def excel_concurrent_(self, func, f, collection_name, black_count_, block_size_, folder_path_):
         title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
         with alive_bar(black_count_, title=title_, bar="blocks") as bar:
             with ThreadPoolExecutor(max_workers=black_count_) as executor:
