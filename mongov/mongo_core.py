@@ -148,6 +148,14 @@ class MongoEngine:
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
+    def save_excel_(self):
+        import xlwings as xw
+        wb = xw.Book()
+        sheet = wb.sheets('sheet1')  # 新增一个表格
+        sheet.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
+        wb.save('./NewData.xlsx')
+        xw.App().quit()
+
     def coll_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
         title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
         with alive_bar(black_count_, title=title_, bar="blocks") as bar:
@@ -180,20 +188,37 @@ class MongoEngine:
                 limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
 
             # import xlwings as xw
-            # wb = xw.Book()
-            # sheet = wb.sheets('sheet1')  # 新增一个表格
-            # for index, doc in enumerate(doc_objs_):
-            #     sheet.range(f'A{index+1}').value = list(dict(doc).values())
-            #
-            # # sheet.range('A1').expand(mode='table').value = [list(dict(doc).values()) for doc in doc_objs_]
-            # wb.save('./NewData.xlsx')
+            # wb = xw.Book()  # 连接excel文件
+            # wb.visible=False
+            # sheet = wb.sheets('Sheet1')
+            # # for index, doc in enumerate(doc_objs_):
+            # #     sheet.range(f'A{index+1}').value = list(dict(doc).values())
+            # sheet.range('A1').expand(mode='table').value = [['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'] for doc in doc_objs_]
+            # wb.save(filename)
             # wb.close()
-            # xw.App().quit()
 
+            # from openpyxl import Workbook
+            # wb = Workbook(write_only=True)
+            # ws = wb.create_sheet()
+            # for doc in doc_objs_:
+            #     print(list(dict(doc).values()))
+            #     ws.append(['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+            #     # ws.append(list(dict(doc).values()))
+            # wb.save(filename)  # doctest: +SKIP
+            # wb.close()
 
-            doc_list_ = list(doc_objs_)
-            data = DataFrame(doc_list_)
-            data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, index=False,encoding=PANDAS_ENCODING)
+            import xlsxwriter
+            f = xlsxwriter.Workbook(filename=filename)  # 创建excel文件
+            worksheet1 = f.add_worksheet('操作日志')  # 括号内为工作表表名
+            for i, doc in enumerate(doc_objs_):
+                print(f"A{i+1}", list(dict(doc).values()))
+                worksheet1.write_row(f"A{i+1}", ['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+            f.close()
+
+            # doc_list_ = list(doc_objs_)
+            # data = DataFrame(doc_list_)
+            # import xlsxwriter
+            # data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
 
             stop_ = timeit.default_timer()
             print(f'Time: {stop_ - start_}')
@@ -378,14 +403,6 @@ class MongoEngine:
         else:
             _ = folder_path
         return _
-
-    def excel_write(self):
-        import xlwings as xw
-        wb = xw.Book()
-        sheet = wb.sheets('sheet1')  # 新增一个表格
-        sheet.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-        wb.save('./NewData.xlsx')
-        xw.App().quit()
 
 
 if __name__ == '__main__':

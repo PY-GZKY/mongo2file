@@ -20,18 +20,18 @@ def setup_function():
     )
 
 
-def test_to_csv():
-    result_ = M.to_csv(folder_path="_csv", is_block=False, block_size=20000)
+# def test_to_csv():
+#     result_ = M.to_csv(folder_path="_csv", is_block=False, block_size=20000)
+#     print(result_)
+#     assert "successfully" in result_
+
+
+def test_to_excel():
+    result_ = M.to_excel(folder_path="_excel",filename="okok.xlsx")
     print(result_)
     assert "successfully" in result_
 
 
-# def test_to_excel():
-#     result_ = M.to_excel(folder_path="_excel")
-#     print(result_)
-#     assert "successfully" in result_
-#
-#
 # def test_to_json():
 #     result_ = M.to_json(folder_path="./_json")
 #     print(result_)
