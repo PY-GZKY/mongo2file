@@ -93,7 +93,7 @@ class MongoEngine:
                 block_count_ = math.ceil(stats_.get("count") / block_size)
                 print('线程数: ', block_count_)
                 # start_ = timeit.default_timer()
-                self.coll_concurrent_(self.save_csv_, block_count_, block_size, folder_path_)
+                self.coll_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 stop_ = timeit.default_timer()
                 print(f'Time: {stop_ - start_}')
@@ -130,20 +130,21 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
-    def save_csv_(self, pg, block_size_, folder_path_):
+    def save_csv_(self, pg, block_size_, collection_name,folder_path_):
         # print("线程启动 ...")
         doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
             block_size_)
-        filename = f'{str(uuid.uuid4())}.csv'
+        filename = f'{collection_name}_{pg}.csv'
+        # filename = f'{collection_name}_{str(uuid.uuid4())}.csv'
         with codecs.open(f'{folder_path_}/{filename}', 'w', encoding=PANDAS_ENCODING) as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(list(dict(doc_list_[0]).keys()))
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def coll_concurrent_(self, func, black_count_, block_size_, folder_path_):
+    def coll_concurrent_(self, func,collection_name, black_count_, block_size_, folder_path_):
         with ThreadPoolExecutor(max_workers=black_count_) as executor:
-            futures_ = [executor.submit(func, pg, block_size_, folder_path_) for pg in range(black_count_)]
+            futures_ = [executor.submit(func, pg, block_size_, collection_name, folder_path_) for pg in range(black_count_)]
             wait(futures_, return_when=ALL_COMPLETED)
             for future_ in as_completed(futures_):
                 if future_.done():
