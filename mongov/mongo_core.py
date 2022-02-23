@@ -4,18 +4,18 @@ import csv
 import math
 import os
 import timeit
-import uuid
 import warnings
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed, ALL_COMPLETED
 from typing import Optional
 
+from alive_progress import alive_bar
 from colorama import init as colorama_init_, Fore
 from dotenv import load_dotenv
 from pandas import DataFrame
 from pymongo import MongoClient
 
-from .constants import *
-from .utils import to_str_datetime, serialize_obj
+from mongov.constants import *
+from mongov.utils import to_str_datetime, serialize_obj
 
 load_dotenv(verbose=True)
 colorama_init_(autoreset=True)
@@ -115,10 +115,16 @@ class MongoEngine:
                 """
 
                 # todo csv
-                with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
-                    writer = csv.writer(csvfile)
-                    writer.writerow(list(dict(doc_list[0]).keys()))
-                    writer.writerows([list(dict(data_).values()) for data_ in doc_list])
+                title_ = f'{Fore.GREEN}正在导出 {self.collection} → {folder_path_}/{filename}'
+                count_ = self.collection_.count_documents(query)
+                with alive_bar(count_, title=title_, bar="blocks") as bar:
+                    with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerow(list(dict(doc_list[0]).keys()))
+                        for data_ in doc_list:
+                            writer.writerow(list(dict(data_).values()))
+                            bar()
+                        # writer.writerows([list(dict(data_).values()) for data_ in doc_list])
 
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
                 stop_ = timeit.default_timer()
@@ -130,7 +136,7 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
-    def save_csv_(self, pg, block_size_, collection_name,folder_path_):
+    def save_csv_(self, pg, block_size_, collection_name, folder_path_):
         # print("线程启动 ...")
         doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
             block_size_)
@@ -142,13 +148,18 @@ class MongoEngine:
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def coll_concurrent_(self, func,collection_name, black_count_, block_size_, folder_path_):
-        with ThreadPoolExecutor(max_workers=black_count_) as executor:
-            futures_ = [executor.submit(func, pg, block_size_, collection_name, folder_path_) for pg in range(black_count_)]
-            wait(futures_, return_when=ALL_COMPLETED)
-            for future_ in as_completed(futures_):
-                if future_.done():
-                    print(future_.result())
+    def coll_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
+        title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
+        with alive_bar(black_count_, title=title_, bar="blocks") as bar:
+            with ThreadPoolExecutor(max_workers=black_count_) as executor:
+                for pg in range(black_count_):
+                    executor.submit(func, pg, block_size_, collection_name, folder_path_).add_done_callback(
+                        lambda func: bar())
+                executor.shutdown()
+                # wait(futures_, return_when=ALL_COMPLETED)
+                # for future_ in as_completed(futures_):
+                #     if future_.done():
+                #         print(future_.result())
 
     def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
         if query is None:
@@ -164,12 +175,29 @@ class MongoEngine:
         if self.collection_:
             if filename is None:
                 filename = f'{self.collection}_{to_str_datetime()}.xlsx'
+            start_ = timeit.default_timer()
             doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
                 limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
+
+            # import xlwings as xw
+            # wb = xw.Book()
+            # sheet = wb.sheets('sheet1')  # 新增一个表格
+            # for index, doc in enumerate(doc_objs_):
+            #     sheet.range(f'A{index+1}').value = list(dict(doc).values())
+            #
+            # # sheet.range('A1').expand(mode='table').value = [list(dict(doc).values()) for doc in doc_objs_]
+            # wb.save('./NewData.xlsx')
+            # wb.close()
+            # xw.App().quit()
+
+
             doc_list_ = list(doc_objs_)
             data = DataFrame(doc_list_)
-            data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, index=False,
-                          encoding=PANDAS_ENCODING)
+            data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, index=False,encoding=PANDAS_ENCODING)
+
+            stop_ = timeit.default_timer()
+            print(f'Time: {stop_ - start_}')
+
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
         else:
@@ -350,3 +378,25 @@ class MongoEngine:
         else:
             _ = folder_path
         return _
+
+    def excel_write(self):
+        import xlwings as xw
+        wb = xw.Book()
+        sheet = wb.sheets('sheet1')  # 新增一个表格
+        sheet.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
+        wb.save('./NewData.xlsx')
+        xw.App().quit()
+
+
+if __name__ == '__main__':
+    M = MongoEngine(
+        host='192.168.0.141',
+        port=27017,
+        username='admin',
+        password='sanmaoyou_admin_',
+        database='sm_admin_test',
+        collection='comment'
+    )
+    # M.to_csv(folder_path="_csv", is_block=False, block_size=20000)
+    M.to_excel()
+    # M.excel_write()
