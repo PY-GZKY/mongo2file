@@ -21,6 +21,39 @@ load_dotenv(verbose=True)
 colorama_init_(autoreset=True)
 
 
+def concurrent_(func, collection_names, folder_path):
+    with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
+        futures_ = [executor.submit(func, collection_name, folder_path) for collection_name in collection_names]
+        wait(futures_, return_when=ALL_COMPLETED)
+        for future_ in as_completed(futures_):
+            if future_.done():
+                # print(future_.result())
+                ...
+
+
+def excel_concurrent_(func, f, collection_name, black_count_, block_size_, folder_path_):
+    title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
+    with alive_bar(black_count_, title=title_, bar="blocks") as bar:
+        with ThreadPoolExecutor(max_workers=black_count_) as executor:
+            for pg in range(black_count_):
+                executor.submit(func, f, pg, block_size_).add_done_callback(lambda bar_: bar())
+            executor.shutdown()
+
+
+def csv_concurrent_(func, collection_name, black_count_, block_size_, folder_path_):
+    title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
+    with alive_bar(black_count_, title=title_, bar="blocks") as bar:
+        with ThreadPoolExecutor(max_workers=black_count_) as executor:
+            for pg in range(black_count_):
+                executor.submit(func, pg, block_size_, collection_name, folder_path_).add_done_callback(
+                    lambda func: bar())
+            executor.shutdown()
+            # wait(futures_, return_when=ALL_COMPLETED)
+            # for future_ in as_completed(futures_):
+            #     if future_.done():
+            #         print(future_.result())
+
+
 class MongoEngine:
 
     def __init__(
@@ -94,7 +127,7 @@ class MongoEngine:
                 block_count_ = math.ceil(count_ / block_size)
                 print('线程数: ', block_count_)
                 # start_ = timeit.default_timer()
-                self.csv_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
+                csv_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 stop_ = timeit.default_timer()
                 print(f'Time: {stop_ - start_}')
@@ -149,19 +182,6 @@ class MongoEngine:
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def csv_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
-        title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
-        with alive_bar(black_count_, title=title_, bar="blocks") as bar:
-            with ThreadPoolExecutor(max_workers=black_count_) as executor:
-                for pg in range(black_count_):
-                    executor.submit(func, pg, block_size_, collection_name, folder_path_).add_done_callback(
-                        lambda func: bar())
-                executor.shutdown()
-                # wait(futures_, return_when=ALL_COMPLETED)
-                # for future_ in as_completed(futures_):
-                #     if future_.done():
-                #         print(future_.result())
-
     def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
                  is_block: bool = False, block_size: int = 1000):
         if query is None:
@@ -187,7 +207,7 @@ class MongoEngine:
                 # start_ = timeit.default_timer()
                 import xlsxwriter
                 f = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')  # 创建excel文件
-                self.excel_concurrent_(self.save_excel_, f, self.collection, block_count_, block_size, folder_path_)
+                excel_concurrent_(self.save_excel_, f, self.collection, block_count_, block_size, folder_path_)
                 f.close()
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 stop_ = timeit.default_timer()
@@ -260,14 +280,6 @@ class MongoEngine:
                 '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325,
                 '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
         return f'{Fore.GREEN} → {pg} is ok'
-
-    def excel_concurrent_(self, func, f, collection_name, black_count_, block_size_, folder_path_):
-        title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
-        with alive_bar(black_count_, title=title_, bar="blocks") as bar:
-            with ThreadPoolExecutor(max_workers=black_count_) as executor:
-                for pg in range(black_count_):
-                    executor.submit(func, f, pg, block_size_).add_done_callback(lambda bar_: bar())
-                executor.shutdown()
 
     def to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
         if query is None:
@@ -415,22 +427,13 @@ class MongoEngine:
                 f.write(serialize_obj(data))
 
     def to_csv_s_(self, folder_path: str):
-        self.concurrent_(self.no_collection_to_csv_, self.collection_names, folder_path)
+        concurrent_(self.no_collection_to_csv_, self.collection_names, folder_path)
 
     def to_excel_s_(self, folder_path: str):
-        self.concurrent_(self.no_collection_to_excel_, self.collection_names, folder_path)
+        concurrent_(self.no_collection_to_excel_, self.collection_names, folder_path)
 
     def to_json_s_(self, folder_path: str):
-        self.concurrent_(self.no_collection_to_json_, self.collection_names, folder_path)
-
-    def concurrent_(self, func, collection_names, folder_path):
-        with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
-            futures_ = [executor.submit(func, collection_name, folder_path) for collection_name in collection_names]
-            wait(futures_, return_when=ALL_COMPLETED)
-            for future_ in as_completed(futures_):
-                if future_.done():
-                    # print(future_.result())
-                    ...
+        concurrent_(self.no_collection_to_json_, self.collection_names, folder_path)
 
     def check_folder_path(self, folder_path):
         if folder_path is None:
