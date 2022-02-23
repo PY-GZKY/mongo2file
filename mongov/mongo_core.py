@@ -132,7 +132,8 @@ class MongoEngine:
 
     def save_csv_(self, pg, block_size_, folder_path_):
         # print("线程启动 ...")
-        doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(block_size_)
+        doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+            block_size_)
         filename = f'{str(uuid.uuid4())}.csv'
         with codecs.open(f'{folder_path_}/{filename}', 'w', encoding=PANDAS_ENCODING) as csvfile:
             writer = csv.writer(csvfile)
