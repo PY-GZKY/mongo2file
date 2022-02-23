@@ -27,7 +27,7 @@ def setup_function():
 
 
 def test_to_excel():
-    result_ = M.to_excel(folder_path="_excel",filename="okok.xlsx")
+    result_ = M.to_excel(folder_path="_excel", is_block=True, block_size=20000)
     print(result_)
     assert "successfully" in result_
 

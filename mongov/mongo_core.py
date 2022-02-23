@@ -90,10 +90,11 @@ class MongoEngine:
             start_ = timeit.default_timer()
 
             if is_block:
-                block_count_ = math.ceil(stats_.get("count") / block_size)
+                count_ = self.collection_.count_documents(query)
+                block_count_ = math.ceil(count_ / block_size)
                 print('线程数: ', block_count_)
                 # start_ = timeit.default_timer()
-                self.coll_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
+                self.csv_coll_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 stop_ = timeit.default_timer()
                 print(f'Time: {stop_ - start_}')
@@ -148,15 +149,7 @@ class MongoEngine:
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def save_excel_(self):
-        import xlwings as xw
-        wb = xw.Book()
-        sheet = wb.sheets('sheet1')  # 新增一个表格
-        sheet.range('A1').value = [['Foo 1', 'Foo 2', 'Foo 3'], [10.0, 20.0, 30.0]]
-        wb.save('./NewData.xlsx')
-        xw.App().quit()
-
-    def coll_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
+    def csv_coll_concurrent_(self, func, collection_name, black_count_, block_size_, folder_path_):
         title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
         with alive_bar(black_count_, title=title_, bar="blocks") as bar:
             with ThreadPoolExecutor(max_workers=black_count_) as executor:
@@ -169,7 +162,8 @@ class MongoEngine:
                 #     if future_.done():
                 #         print(future_.result())
 
-    def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
+    def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
+                 is_block: bool = False, block_size: int = 1000):
         if query is None:
             query = {}
         if not isinstance(query, dict):
@@ -182,54 +176,98 @@ class MongoEngine:
 
         if self.collection_:
             if filename is None:
-                filename = f'{self.collection}_{to_str_datetime()}.xlsx'
+                filename = f'{self.collection}_.xlsx'
             start_ = timeit.default_timer()
             doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
                 limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
+            if is_block:
+                count_ = self.collection_.count_documents(query)
+                block_count_ = math.ceil(count_ / block_size)
+                print('线程数: ', block_count_)
+                # start_ = timeit.default_timer()
+                import xlsxwriter
+                f = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')  # 创建excel文件
+                self.excel_coll_concurrent_(self.save_excel_, f, self.collection, block_count_, block_size,folder_path_)
+                f.close()
+                result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
+                stop_ = timeit.default_timer()
+                print(f'Time: {stop_ - start_}')
+            else:
+                # import xlwings as xw
+                # app = xw.App(visible=False, add_book=False)
+                # wb = app.books.open(f'{folder_path_}/{filename}') # 打开Excel文件
+                # sheet = wb.sheets[0]
+                # for index, doc in enumerate(doc_objs_):
+                #     sheet.range(f'A{index+1}').value = list(dict(doc).values())
+                # # sheet.range('A1').expand(mode='table').value = [['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'] for doc in doc_objs_]
+                # wb.save()
+                # wb.close()
 
-            # import xlwings as xw
-            # wb = xw.Book()  # 连接excel文件
-            # wb.visible=False
-            # sheet = wb.sheets('Sheet1')
-            # # for index, doc in enumerate(doc_objs_):
-            # #     sheet.range(f'A{index+1}').value = list(dict(doc).values())
-            # sheet.range('A1').expand(mode='table').value = [['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'] for doc in doc_objs_]
-            # wb.save(filename)
-            # wb.close()
+                # from openpyxl import Workbook
+                # wb = Workbook(write_only=True)
+                # ws = wb.create_sheet(title="hi")
+                # title_ = f'{Fore.GREEN}正在导出 {self.collection} → {folder_path_}/{filename}'
+                # count_ = self.collection_.count_documents(query)
+                # with alive_bar(count_, title=title_, bar="blocks") as bar:
+                #     for doc in doc_objs_:
+                #         # print(list(dict(doc).values()))
+                #         ws.append(['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+                #         # ws.append(list(dict(doc).values()))
+                #         bar()
+                #     wb.save(filename)  # doctest: +SKIP
+                #     wb.close()
 
-            # from openpyxl import Workbook
-            # wb = Workbook(write_only=True)
-            # ws = wb.create_sheet()
-            # for doc in doc_objs_:
-            #     print(list(dict(doc).values()))
-            #     ws.append(['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
-            #     # ws.append(list(dict(doc).values()))
-            # wb.save(filename)  # doctest: +SKIP
-            # wb.close()
+                import xlsxwriter
+                f = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')  # 创建excel文件
+                worksheet1 = f.add_worksheet('操作日志')  # 括号内为工作表表名
+                title_ = f'{Fore.GREEN}正在导出 {self.collection} → {folder_path_}/{filename}'
+                count_ = self.collection_.count_documents(query)
+                with alive_bar(count_, title=title_, bar="blocks") as bar:
+                    for i, doc in enumerate(doc_objs_):
+                        # print(f"A{i + 1}", list(dict(doc).values()))
+                        worksheet1.write_row(f"A{i + 1}", [
+                            '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
+                            '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园',
+                            '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+                        bar()
+                    f.close()
 
-            import xlsxwriter
-            f = xlsxwriter.Workbook(filename=filename)  # 创建excel文件
-            worksheet1 = f.add_worksheet('操作日志')  # 括号内为工作表表名
-            for i, doc in enumerate(doc_objs_):
-                print(f"A{i+1}", list(dict(doc).values()))
-                worksheet1.write_row(f"A{i+1}", ['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
-            f.close()
+                # doc_list_ = list(doc_objs_)
+                # data = DataFrame(doc_list_)
+                # import xlsxwriter
+                # data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
 
-            # doc_list_ = list(doc_objs_)
-            # data = DataFrame(doc_list_)
-            # import xlsxwriter
-            # data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
+                stop_ = timeit.default_timer()
+                print(f'Time: {stop_ - start_}')
 
-            stop_ = timeit.default_timer()
-            print(f'Time: {stop_ - start_}')
-
-            result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
+                result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
             self.to_excel_s_(folder_path_)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
+
+    def save_excel_(self, f, pg, block_size_):
+        print("线程启动 ...")
+        work_sheet_ = f.add_worksheet(f'Sheet{pg + 1}')
+        doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+            block_size_)
+        for i, doc in enumerate(doc_list_):
+            # print(f"A{i + 1}", list(dict(doc).values()))
+            work_sheet_.write_row(f"A{i + 1}", [
+                '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
+                '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325,
+                '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+        return f'{Fore.GREEN} → {pg} is ok'
+
+    def excel_coll_concurrent_(self, func, f, collection_name, black_count_, block_size_, folder_path_):
+        title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
+        with alive_bar(black_count_, title=title_, bar="blocks") as bar:
+            with ThreadPoolExecutor(max_workers=black_count_) as executor:
+                for pg in range(black_count_):
+                    executor.submit(func, f, pg, block_size_).add_done_callback(lambda bar_: bar())
+                executor.shutdown()
 
     def to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
         if query is None:
@@ -415,5 +453,4 @@ if __name__ == '__main__':
         collection='comment'
     )
     # M.to_csv(folder_path="_csv", is_block=False, block_size=20000)
-    M.to_excel()
-    # M.excel_write()
+    M.to_excel(folder_path="_excel", is_block=False, block_size=20000)
