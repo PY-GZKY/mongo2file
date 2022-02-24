@@ -7,9 +7,11 @@ readme_.md
 .egg-info/
 dist/
 .env
+.vscode/
 _csv/
 _excel/
 _json/
 _pickle/
 _*/
+
 
