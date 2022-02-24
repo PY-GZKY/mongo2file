@@ -24,3 +24,5 @@ TIME_ZONE = 'Asia/Shanghai'
 THREAD_POOL_MAX_WORKERS = 4
 
 ECHO_INFO = '{}[+] {} exported successfully → {}'
+
+IGNORE_TYPE = (str, int, float, bool)
