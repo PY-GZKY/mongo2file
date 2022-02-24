@@ -66,7 +66,7 @@ def concurrent_(func, collection_names, folder_path):
 
 
 def excel_concurrent_(func, f_, collection_name, black_count_, block_size_, folder_path_):
-    title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
+    title_ = f'{Fore.GREEN} {collection_name} → {folder_path_}'
     with alive_bar(black_count_, title=title_, bar="blocks") as bar:
         with ThreadPoolExecutor(max_workers=black_count_) as executor:
             for pg in range(black_count_):
@@ -76,7 +76,7 @@ def excel_concurrent_(func, f_, collection_name, black_count_, block_size_, fold
 
 
 def csv_concurrent_(func, collection_name, black_count_, block_size_, folder_path_):
-    title_ = f'{Fore.GREEN}正在导出 {collection_name} → {folder_path_}'
+    title_ = f'{Fore.GREEN} {collection_name} → {folder_path_}'
     with alive_bar(black_count_, title=title_, bar="blocks") as bar:
         with ThreadPoolExecutor(max_workers=black_count_) as executor:
             for pg in range(black_count_):
