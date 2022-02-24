@@ -52,11 +52,6 @@ def to_feather():
 def to_parquet():
     result_ = M.to_parquet()
     assert "successfully" in result_
-
-
-def to_hdf5():
-    result_ = M.to_hdf5()
-    assert "successfully" in result_
 ```
 
 当 `MongoEngine` 控制类指定了 `mongodb` 表名称时、将对数据表 (`mongodb集合`) 进行导出操作。
