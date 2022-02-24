@@ -80,36 +80,6 @@ class MongoEngine:
             writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def save_excel_(self, f_: xlsxwriter.Workbook, pg: int, block_size_: int, collection_name: str,
-                    folder_path_: str):
-        print("线程启动 ...")
-        if f_:
-            worksheet1 = f_.add_worksheet(f'Sheet{pg+1}')  # 括号内为工作表表名
-            doc_objs_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
-                block_size_)
-            for i, doc in enumerate(doc_objs_):
-                # print(f"A{i + 1}", list(dict(doc).values()))
-                worksheet1.write_row(f"A{i + 1}", [
-                    '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
-                    '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246,
-                    '鹅岭公园',
-                    '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
-            return f'{Fore.GREEN} → {pg} is ok'
-        else:
-            filename = f'{collection_name}_{pg}.xlsx'
-            xf_ = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')
-            work_sheet_ = xf_.add_worksheet(f'Sheet{pg + 1}')
-            doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
-                block_size_)
-            for i, doc in enumerate(doc_list_):
-                # print(f"A{i + 1}", list(dict(doc).values()))
-                work_sheet_.write_row(f"A{i + 1}", [
-                    '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
-                    '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325,
-                    '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
-            xf_.close()
-            return f'{Fore.GREEN} → {pg} is ok'
-
     def to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
                is_block: bool = False, block_size: int = 1000):
         """
@@ -158,14 +128,13 @@ class MongoEngine:
                 columns_ = list(doc_list[0].keys())
                 data = pl.DataFrame(doc_list_,columns=columns_)
                 data.to_csv(file=f'{folder_path_}/{filename}', has_header=True)
-                
+
                 todo pandas
                 df_ = DataFrame(data=doc_list)
                 df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
                 """
 
-                # todo csv
-                title_ = f'{Fore.GREEN}正在导出 {self.collection} → {folder_path_}/{filename}'
+                title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
                 count_ = self.collection_.count_documents(query)
                 with alive_bar(count_, title=title_, bar="blocks") as bar:
                     with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
@@ -185,6 +154,31 @@ class MongoEngine:
             self.to_csv_s_(folder_path_)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
+
+    def save_excel_(self, f_: xlsxwriter.Workbook, pg: int, block_size_: int, collection_name: str, folder_path_: str):
+        print("线程启动 ...")
+        if f_:
+            work_sheet_ = f_.add_worksheet(f'Sheet{pg+1}')
+            doc_objs_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+                block_size_)
+            # print(f"A{i + 1}", list(dict(doc).values()))
+            for i, doc in enumerate(doc_objs_):
+                work_sheet_.write_row(f"A{i + 1}", [
+                    '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
+                    '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+            return f'{Fore.GREEN} → {work_sheet_.name} is ok'
+        else:
+            filename = f'{collection_name}_{pg}.xlsx'
+            xf_ = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')
+            work_sheet_ = xf_.add_worksheet(f'Sheet{pg + 1}')
+            doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+                block_size_)
+            for i, doc in enumerate(doc_list_):
+                work_sheet_.write_row(f"A{i + 1}", [
+                    '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
+                    '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '2021-10-12'])
+            xf_.close()
+            return f'{Fore.GREEN} → {xf_.filename} is ok'
 
     def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
                  is_block: bool = False, block_size: int = 1000, mode: str = 'xlsx'):
@@ -219,8 +213,6 @@ class MongoEngine:
                 count_ = self.collection_.count_documents(query)
                 block_count_ = math.ceil(count_ / block_size)
                 print('线程数: ', block_count_)
-                # start_ = timeit.default_timer()
-
                 if mode not in ['xlsx', 'sheet']:
                     raise ValueError("mode must be specified as xlsx or sheet")
                 # 导出为多 xlsx
@@ -238,48 +230,44 @@ class MongoEngine:
                     stop_ = timeit.default_timer()
                     print(f'Time: {stop_ - start_}')
             else:
-                # import xlwings as xw
-                # app = xw.App(visible=False, add_book=False)
-                # wb = app.books.open(f'{folder_path_}/{filename}') # 打开Excel文件
-                # sheet = wb.sheets[0]
-                # for index, doc in enumerate(doc_objs_):
-                #     sheet.range(f'A{index+1}').value = list(dict(doc).values())
-                # # sheet.range('A1').expand(mode='table').value = [['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'] for doc in doc_objs_]
-                # wb.save()
-                # wb.close()
+                """
+                todo xlwings
+                import xlwings as xw
+                app = xw.App(visible=False, add_book=False)
+                wb = app.books.open(f'{folder_path_}/{filename}') # 打开Excel文件
+                sheet = wb.sheets[0]
+                for index, doc in enumerate(doc_objs_):
+                    sheet.range(f'A{index+1}').value = list(dict(doc).values())
+                wb.save()
+                wb.close()
 
-                # from openpyxl import Workbook
-                # wb = Workbook(write_only=True)
-                # ws = wb.create_sheet(title="hi")
-                # title_ = f'{Fore.GREEN}正在导出 {self.collection} → {folder_path_}/{filename}'
-                # count_ = self.collection_.count_documents(query)
-                # with alive_bar(count_, title=title_, bar="blocks") as bar:
-                #     for doc in doc_objs_:
-                #         # print(list(dict(doc).values()))
-                #         ws.append(['重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。', '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '鹅岭公园', 3325, '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
-                #         # ws.append(list(dict(doc).values()))
-                #         bar()
-                #     wb.save(filename)  # doctest: +SKIP
-                #     wb.close()
+                todo openpyxl
+                from openpyxl import Workbook
+                wb = Workbook(write_only=True)
+                ws = wb.create_sheet(title="hi")
+                for doc in doc_objs_:
+                    ws.append(list(dict(doc).values()))
+                wb.save(filename)
+                wb.close()
+                """
 
                 f = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')  # 创建excel文件
                 worksheet1 = f.add_worksheet('操作日志')  # 括号内为工作表表名
-                title_ = f'{Fore.GREEN}正在导出 {self.collection} → {folder_path_}/{filename}'
+                title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
                 count_ = self.collection_.count_documents(query)
                 with alive_bar(count_, title=title_, bar="blocks") as bar:
                     for i, doc in enumerate(doc_objs_):
-                        # print(f"A{i + 1}", list(dict(doc).values()))
                         worksheet1.write_row(f"A{i + 1}", [
-                            '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
-                            '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246,
-                            '鹅岭公园',
-                            '鹅岭公园', '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+                            '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',])
                         bar()
                     f.close()
 
-                # doc_list_ = list(doc_objs_)
-                # data = DataFrame(doc_list_)
-                # data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
+                """
+                todo pandas
+                doc_list_ = list(doc_objs_)
+                data = DataFrame(doc_list_)
+                data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
+                """
 
                 stop_ = timeit.default_timer()
                 print(f'Time: {stop_ - start_}')
