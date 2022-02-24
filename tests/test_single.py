@@ -27,7 +27,7 @@ def setup_function():
 
 
 def test_to_excel():
-    result_ = M.to_excel(folder_path="_excel", is_block=True, block_size=20000)
+    result_ = M.to_excel(folder_path="_excel", is_block=True, block_size=10000, mode='xlsx')
     print(result_)
     assert "successfully" in result_
 
