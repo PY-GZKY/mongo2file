@@ -8,6 +8,7 @@ readme_.md
 dist/
 .env
 .vscode/
+.m
 _csv/
 _excel/
 _json/
