@@ -1,0 +1,294 @@
+commit 795eb39c87fa3eb563ba4fbeebeb273190f6dafd
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 24 15:04:30 2022 +0800
+
+    Delete settings.json
+    
+    Co-Authored-By: PY-GZKY <73678422+PY-GZKY@users.noreply.github.com>
+
+commit a5c95fd3557f7256e7d2575e06790beb6a2dd700
+Merge: 530405e 5baf9fc
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 24 15:02:46 2022 +0800
+
+    Merge branch 'main' of https://github.com/PY-GZKY/mongov
+
+commit 530405e9057a9c26833420e40115d081064aa2c7
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 24 15:02:00 2022 +0800
+
+    Update .gitignore
+    
+    Co-Authored-By: PY-GZKY <73678422+PY-GZKY@users.noreply.github.com>
+
+commit 5baf9fc6f5395cd166d0598cce25fcfff41b6df4
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 24 14:54:01 2022 +0800
+
+    <feat>(<>): <提交描述>
+    
+    <body>
+    
+    <footer>
+    
+        feat(新特性),
+        fix(修改问题),
+        docs(文档修改),
+        style(代码格式修改, 注意不是 css 修改),
+        refactor(代码重构),
+        test(测试),
+        chore(其他修改, 比如构建流程, 依赖管理)
+    
+        影响的的范围
+    
+        提交描述
+
+commit acd06368c87bebd2b2a8fac6d4a08d53decbd6b3
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 24 14:44:28 2022 +0800
+
+    Test: 单测通过
+    
+    Co-Authored-By: PY-GZKY <73678422+PY-GZKY@users.noreply.github.com>
+
+commit d830900395168c2f038e2d5b4fe8fffb60375a92
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 24 14:36:58 2022 +0800
+
+    ...
+    
+    ......
+
+commit 0bf18910dcc02bff56f41f74c92052238112fae7
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 19:15:18 2022 +0800
+
+    Update mongo_core.py
+
+commit 03003b2d879b45b888d7169b5c3c70d87841416d
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 19:04:11 2022 +0800
+
+    Update mongo_core.py
+
+commit d097debd1425a7f80b7e9a81ba0341e864bb42f6
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 17:51:43 2022 +0800
+
+    Todo: 关于 excel 多线程写入的瓶颈
+
+commit 3970c0cc60a99d0a1ebf9c9237c08ce912de869e
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 16:14:29 2022 +0800
+
+    ...
+
+commit 2e2670a82995dea2d749965f3aa28f8f394ae03f
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 12:05:50 2022 +0800
+
+    Update mongo_core.py
+
+commit 5e96c5839982a84e6ff265ec1c8c42fef9d64b50
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 09:50:35 2022 +0800
+
+    ...
+
+commit b94109922ad5ee5db77ead2b834e45d3c807952e
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 23 09:40:10 2022 +0800
+
+    ...
+
+commit 09128a5b915404a656f9b2b94c8b745832320740
+Author: PY-GZKY <341796767@qq.com>
+Date:   Tue Feb 22 18:59:53 2022 +0800
+
+    ...
+
+commit 40ccae1f1037541335a07b0d12ec3b81f688ac28
+Author: PY-GZKY <341796767@qq.com>
+Date:   Tue Feb 22 18:48:58 2022 +0800
+
+    新增单表分块参数、多线程导出
+
+commit 5ad49a1097b0c4ce7072f1e9ad2d5e66ef3e540a
+Author: PY-GZKY <341796767@qq.com>
+Date:   Tue Feb 22 14:10:16 2022 +0800
+
+    polars ...
+
+commit 835499f69177e23c82a267ba0eab41377a73d7fb
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:42:08 2022 +0800
+
+    增加 readme 文本为长简介
+
+commit 990828331223cae3396082a3ed1b4cf950664a12
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:35:49 2022 +0800
+
+    Update README.md
+
+commit dab17f7b9847a94d44d5f7a85950eac6dd0e9523
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:35:23 2022 +0800
+
+    Update README.md
+
+commit b210e724e8e0a8ad7adb75ee4fab0bcc74fadb47
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:34:08 2022 +0800
+
+    Update README.md
+
+commit 0da943373cf183830a16fbcb591e0937c4ee80b9
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:15:15 2022 +0800
+
+    Update test_many.py
+
+commit 011729a2601bbe294a8700fef409c42efcb28bb0
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:13:09 2022 +0800
+
+    Update test_single.py
+
+commit f61b055bbb2efd6ff02838b7aaedc957b936a58b
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:03:10 2022 +0800
+
+    ...
+
+commit ace9b18682dec0301b3fe61fab6cdf18f80f54ee
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:01:52 2022 +0800
+
+    Update mongo_core.py
+
+commit 76113cdd9c37971d17879edf3214574472794178
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:01:02 2022 +0800
+
+    Update constants.py
+
+commit b0e8d10b1ec51de084c5827ba8c0f7b72efd5ce1
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 11:00:45 2022 +0800
+
+    Update __init__.py
+
+commit 4de498aeb292ba9323904fe5dfc9265518956b6c
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:59:43 2022 +0800
+
+    统一版本号输出
+
+commit 5a200529668cd213b672c4a68e3f51960bccd362
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:54:20 2022 +0800
+
+    单测通过
+
+commit f4158206646952bdd252c5ab749b3163c3a883b7
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:43:27 2022 +0800
+
+    Update setup.py
+
+commit f19453bc01184fc63380ca14e3bd47302231b5a1
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:42:41 2022 +0800
+
+    Update setup.py
+
+commit 7d87f20bddf10e2cbbf896686ac99114778cc753
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:41:10 2022 +0800
+
+    mv mongov
+
+commit a9290b0b7bd08c4748b7707fd1e30fac7c875d61
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:34:34 2022 +0800
+
+    Update cli.py
+
+commit 0fdb3274f64f24e655147bd9dc3c2153983b1b96
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:25:58 2022 +0800
+
+    MIT
+
+commit 9e153dcbee943885cfd179cc4702e47ff83e1e3b
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:20:19 2022 +0800
+
+    Update setup.py
+
+commit adb6c9796ae96315dd48570c5eaaf3907c9376ca
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:18:05 2022 +0800
+
+    Update setup.py
+
+commit a086cb88bb0b9ee6465efff5784ed92eb6c0d571
+Author: PY-GZKY <341796767@qq.com>
+Date:   Fri Feb 18 10:14:47 2022 +0800
+
+    mongov
+
+commit 14b85c24156e54b9a443d8cab514287242ec29e2
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 17 18:31:44 2022 +0800
+
+    单测通过
+
+commit 467dbda788717e2fbf43b7c57dc74e91715956a3
+Author: PY-GZKY <341796767@qq.com>
+Date:   Thu Feb 17 16:47:14 2022 +0800
+
+    单测通过
+
+commit c67ead85e17ba520099543e52981998e4b2e3c2d
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 16 17:48:37 2022 +0800
+
+    Update README.md
+
+commit d97f066d93735ddb02430246229477f1b5e12457
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 16 17:40:16 2022 +0800
+
+    Update .gitignore
+
+commit 320245cd6b46c76fb7487270d99175b520a21d60
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 16 17:38:12 2022 +0800
+
+    ...
+
+commit 3b0130b2855b9efaf5c222e41873fcfe049c1f94
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 16 17:34:12 2022 +0800
+
+    封装是否存在文件夹方法
+
+commit 0c54c57d034f2f6e7fda34ee1a8febfd5690ac99
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 16 16:36:30 2022 +0800
+
+    指定文件导出目录
+
+commit 362e17944cb3fc7d7180235557b39373a9dc8784
+Author: PY-GZKY <341796767@qq.com>
+Date:   Wed Feb 16 15:51:59 2022 +0800
+
+    初始化(2022-02-16)
+
+commit 2a3384105d2ecc132e272af66e9d90b8839d66f1
+Author: PY-GZKY <73678422+PY-GZKY@users.noreply.github.com>
+Date:   Wed Feb 16 15:48:41 2022 +0800
+
+    Initial commit
