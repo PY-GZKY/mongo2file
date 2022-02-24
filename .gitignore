@@ -7,7 +7,6 @@ readme_.md
 .egg-info/
 dist/
 .env
-
 _csv/
 _excel/
 _json/
