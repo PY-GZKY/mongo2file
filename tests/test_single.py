@@ -16,28 +16,27 @@ def setup_function():
         username='admin',
         password='sanmaoyou_admin_',
         database='sm_admin_test',
-        collection='comment'
+        collection='museum_scenic'
     )
 
 
 # def test_to_csv():
-#     result_ = M.to_csv(folder_path="_csv")
+#     result_ = M.to_csv(folder_path="_csv",is_block=True,block_size=10000)
 #     print(result_)
 #     assert "successfully" in result_
 
 
-def test_to_excel():
-    result_ = M.to_excel(folder_path="_excel", is_block=False, block_size=20000, mode='xlsx',ignore_error=False)
+# def test_to_excel():
+#     result_ = M.to_excel(folder_path="_excel", is_block=True, block_size=10000, mode='sheet',ignore_error=True)
+#     print(result_)
+#     assert "successfully" in result_
+
+
+def test_to_json():
+    result_ = M.to_json(folder_path="./_json")
     print(result_)
     assert "successfully" in result_
 
-
-# def test_to_json():
-#     result_ = M.to_json(folder_path="./_json")
-#     print(result_)
-#     assert "successfully" in result_
-#
-#
 # def test_to_pickle():
 #     result_ = M.to_pickle(folder_path="./_pickle")
 #     print(result_)
