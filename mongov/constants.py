@@ -21,7 +21,8 @@ MYSQL_CONN_RETRIES = 5
 PANDAS_ENCODING = 'utf_8_sig'
 TIME_ZONE = 'Asia/Shanghai'
 
-THREAD_POOL_MAX_WORKERS = 4
+THREAD_POOL_MAX_WORKERS = 8
+MONGO_POOL_MAX_WORKERS = 200
 
 ECHO_INFO = '{}[+] {} exported successfully → {}'
 
