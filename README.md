@@ -3,7 +3,7 @@
 ## 安装
 
 ```shell
-pip install mongov
+pip install mongo2file
 ```
 
 ## 基本用法
@@ -12,7 +12,7 @@ pip install mongov
 
 ```python
 import os
-from mongov import MongoEngine
+from mongo2file import MongoEngine
 
 M = MongoEngine(
     host=os.getenv('MONGO_HOST', '127.0.0.1'),
@@ -69,7 +69,7 @@ def to_parquet():
 
 ```python
 import os
-from mongov import MongoEngine
+from mongo2file import MongoEngine
 
 """
 作用于 MongoEngine 类未指定表名称时
@@ -111,9 +111,9 @@ def to_json():
 
 ---
 
-## `mongov` 的表现
+## `mongo2file` 的表现
 ```text
-mongov 其实在做大数据量导出时表现的并没有多么优秀。
+mongo2file 其实在做大数据量导出时表现的并没有多么优秀。
 导致的主要原因可能是:
 - 采用的 xlsxwriter 库写入 excel 时是积极加载(非惰性)的，数据全部加载至内存后插入表格
 - 大数据量插入表格时、跟宿主机器的性能有关
@@ -124,7 +124,7 @@ mongov 其实在做大数据量导出时表现的并没有多么优秀。
                     other → pandas
 ```
 ---
-## `mongov` 的改进
+## `mongo2file` 的改进
 ```text
 对于 mongodb 的全表查询、条件查询、聚合操作、以及索引操作(当数据达到一定量级时建议) 并不是直接影响
 数据导出的最大因素，因为 mongodb 的查询一般而言都非常快速，主要的瓶颈在于读取 数据库 之后将数据转换为大列表存入 表格文件时所耗费的时间。
@@ -134,7 +134,7 @@ mongov 其实在做大数据量导出时表现的并没有多么优秀。
 当没有多线程(当然这里的多线程并不是对同一文件进行并行操作，文件写入往往是线程不安全的)、
 数据表查询语句无优化时，并且当数据达到一定量级时(比如 100w 行)，单表单线程表现出来的效果真是让人窒息。
 
-当 mongov 表现的不如人意时，我做出了一下改进:
+当 mongo2file 表现的不如人意时，我做出了一下改进:
 - 当数据量过大时，数据表分块读取，导出多表格
 - 增加线程池的最大并发数、当选取的 block_size 值合适时，将发挥最大性能
 ```
@@ -158,9 +158,3 @@ sheet.range('A1').expand(mode='table').value = [__ for _ in range(3)]
 而比较恰当合理的做法就是在存储 mongodb 文档时不要存入类似于 []、{} 的这种对原始数据无意义的空对象。
 ```
 
-而我的做法是:
-```text
-- 尽可能的在 mongodb 数据表中消除 Null 字符
-- 使用 参数 ig
-```
----
