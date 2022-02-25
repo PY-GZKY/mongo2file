@@ -1,11 +1,8 @@
 # -*- coding:utf-8 -*-
 import codecs
 import csv
-import json
 import math
 import os
-import timeit
-import uuid
 import warnings
 from typing import Optional
 
@@ -15,9 +12,9 @@ from colorama import init as colorama_init_, Fore
 from dotenv import load_dotenv
 from pandas import DataFrame
 from pymongo import MongoClient
+from mongo2file.utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_
 
-from constants import *
-from utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_
+from mongo2file.constants import *
 
 load_dotenv(verbose=True)
 colorama_init_(autoreset=True)
@@ -178,11 +175,12 @@ class MongoEngine:
                                            for _ in header_])
             else:
                 [work_sheet_.write_row(f"A{index_ + 2}",
-                                       [i if isinstance(i, (int, float)) else str(i) for i in dict(doc_).values()]) for
-                 index_, doc_ in enumerate(doc_objs_)]
+                                       [doc_ if isinstance(doc_, (int, float)) or doc_ is None else str(doc_) for doc_ in
+                                        dict(doc).values()]) for
+                 index_, doc in enumerate(doc_objs_)]
             return f'{Fore.GREEN} → {work_sheet_.name} is ok'
         else:
-            filename = f'{collection_name}_{pg}.xlsx'
+            filename = f'{collection_name}_{pg + 1}.xlsx'
             doc_objs_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
                 block_size_)
             header_ = list(dict(doc_objs_[0]).keys())
@@ -190,16 +188,17 @@ class MongoEngine:
                 work_sheet_ = work_book_.add_worksheet(f'Sheet{pg + 1}')
                 work_sheet_.write_row(f"A1", header_)
                 if ignore_error:
-                    for i, doc in enumerate(doc_objs_):
+                    for index_, doc in enumerate(doc_objs_):
                         # print(list(dict(doc).values()))
                         write_list_ = [doc.get(x_) if doc.get(x_) and isinstance(doc.get(x_), IGNORE_TYPE) else None for
                                        x_ in header_]
-                        work_sheet_.write_row(f"A{i + 2}", write_list_)
+                        work_sheet_.write_row(f"A{index_ + 2}", write_list_)
                 else:
                     # work_sheet_._write_rows([list(dict(doc).values()) for i, doc in enumerate(doc_objs_)])
-                    for i, doc in enumerate(doc_objs_):
-                        write_list_ = [i if isinstance(i, int) else str(i) for i in dict(doc).values()]
-                        work_sheet_.write_row(f"A{i + 2}", write_list_)
+                    for index_, doc in enumerate(doc_objs_):
+                        write_list_ = [doc_ if isinstance(doc_, (int, float)) or doc_ is None else str(doc_) for doc_ in
+                                       dict(doc).values()]
+                        work_sheet_.write_row(f"A{index_ + 2}", write_list_)
             return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
     def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
@@ -278,15 +277,17 @@ class MongoEngine:
                         header_ = list(dict(doc_objs_[0]).keys())
                         work_sheet_.write_row(f"A1", header_)
                         if ignore_error:
-                            for i, doc in enumerate(doc_objs_):
+                            for index_, doc_ in enumerate(doc_objs_):
                                 write_list_ = [
-                                    doc.get(x_) if doc.get(x_) and isinstance(doc.get(x_), IGNORE_TYPE) else None
+                                    doc_.get(x_) if doc_.get(x_) and isinstance(doc_.get(x_), IGNORE_TYPE) else None
                                     for x_ in header_]
-                                work_sheet_.write_row(f"A{i + 2}", write_list_)
+                                work_sheet_.write_row(f"A{index_ + 2}", write_list_)
                                 bar()
                         else:
-                            for i, doc in enumerate(doc_objs_):
-                                work_sheet_.write_row(f"A{i + 2}", list(dict(doc).values()))
+                            for index_, doc in enumerate(doc_objs_):
+                                write_list_ = [doc_ if isinstance(doc_, (int, float)) or doc_ is None else str(doc_) for doc_ in
+                                               dict(doc).values()]
+                                work_sheet_.write_row(f"A{index_ + 2}", write_list_)
                                 bar()
                 """
                 todo pandas
