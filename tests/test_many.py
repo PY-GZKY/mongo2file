@@ -11,11 +11,12 @@ dotenv.load_dotenv(verbose=True)
 def setup_function():
     global M
     M = MongoEngine(
-        host=os.getenv('MONGO_HOST'),
-        port=int(os.getenv('MONGO_PORT')),
-        username=os.getenv('MONGO_USERNAME'),
-        password=os.getenv('MONGO_PASSWORD'),
-        database=os.getenv('MONGO_DATABASE')
+        host='192.168.0.141',
+        port=27017,
+        username='admin',
+        password='sanmaoyou_admin_',
+        database='sm_admin_test',
+        # collection='museum_scenic'
     )
 
 
@@ -24,14 +25,14 @@ def test_to_csv():
     assert "successfully" in result_
 
 
-def test_to_excel():
-    result_ = M.to_excel(folder_path='./_excel')
-    assert "successfully" in result_
-
-
-def test_to_json():
-    result_ = M.to_json(folder_path='./_json')
-    assert "successfully" in result_
+# def test_to_excel():
+#     result_ = M.to_excel(folder_path='./_excel')
+#     assert "successfully" in result_
+#
+#
+# def test_to_json():
+#     result_ = M.to_json(folder_path='./_json')
+#     assert "successfully" in result_
 
 
 def teardown_function():
