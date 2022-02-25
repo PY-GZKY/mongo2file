@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import codecs
 import csv
+import json
 import math
 import os
 import timeit
@@ -15,8 +16,8 @@ from dotenv import load_dotenv
 from pandas import DataFrame
 from pymongo import MongoClient
 
-from mongov.constants import *
-from mongov.utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_
+from constants import *
+from utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_
 
 load_dotenv(verbose=True)
 colorama_init_(autoreset=True)
@@ -59,7 +60,7 @@ class MongoEngine:
             port=self.port,
             username=self.username,
             password=self.password,
-            maxPoolSize=200
+            maxPoolSize=MONGO_POOL_MAX_WORKERS
         )
         self.db_ = self.mongo_core_[self.database]
         self.collection_names = self.db_.list_collection_names()
@@ -68,22 +69,34 @@ class MongoEngine:
         else:
             self.collection_ = None
 
-    def save_csv_(self, pg, block_size_, collection_name, folder_path_):
-        print("线程启动 ...")
-        doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+    def save_csv_(self, pg: int, block_size_: int, collection_name: str, folder_path_: str, ignore_error: bool):
+        doc_list_ = self.collection_.find({}, {'_id': 0}, batch_size=block_size_).skip(pg * block_size_).limit(
             block_size_)
         filename = f'{collection_name}_{pg}.csv'
         # filename = f'{collection_name}_{str(uuid.uuid4())}.csv'
+
         with codecs.open(f'{folder_path_}/{filename}', 'w', encoding=PANDAS_ENCODING) as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(list(dict(doc_list_[0]).keys()))
-            writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
+            if ignore_error:
+                ...
+            else:
+                writer.writerow(list(dict(doc_list_[0]).keys()))
+                writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
+                # for data_ in doc_list_: writer.writerow(list(dict(data_).values()))
+
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
     def to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
-               is_block: bool = False, block_size: int = 1000):
+               is_block: bool = False, block_size: int = 1000, ignore_error: bool = False):
         """
-        :param query: dict type → Invalid when exporting multiple tables
+        :param query: 数据库查询条件、字典类型、只作用于单表导出
+        :param folder_path: 指定导出的目录
+        :param filename: 指定导出的文件名
+        :param _id: 是否导出 _id 默认否
+        :param limit: 限制数据表查询的条数
+        :param is_block: 是否分块导出
+        :param block_size: 块大小、is_block 为 True 时生效
+        :param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
         """
         if query is None:
             query = {}
@@ -96,27 +109,23 @@ class MongoEngine:
         folder_path_ = check_folder_path(folder_path)
 
         if self.collection_:
+            """
             stats_ = self.db_.command('collstats', self.collection)
             print(f'命名空间: {stats_.get("ns")}, '
                   f'内存总大小: {round(stats_.get("size") / 1024, 2)} KB, '
                   f'存储大小: {round(stats_.get("storageSize") / 1024, 2)} KB, '
                   f'对象平均大小: {round(stats_.get("avgObjSize") / 1024, 2)} KB, '
-                  f'文档数: {stats_.get("count")}',
-                  )
+                  f'文档数: {stats_.get("count")}')
+            """
 
             if filename is None:
                 filename = f'{self.collection}_{to_str_datetime()}.csv'
-            start_ = timeit.default_timer()
 
             if is_block:
                 count_ = self.collection_.count_documents(query)
                 block_count_ = math.ceil(count_ / block_size)
-                print('线程数: ', block_count_)
-                # start_ = timeit.default_timer()
-                csv_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_)
+                csv_concurrent_(self.save_csv_, self.collection, block_count_, block_size, folder_path_, ignore_error)
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
-                stop_ = timeit.default_timer()
-                print(f'Time: {stop_ - start_}')
             else:
                 doc_list = self.collection_.find(query, {'_id': 0}).limit(limit) \
                     if limit != -1 else self.collection_.find(query, {'_id': 0})
@@ -146,8 +155,6 @@ class MongoEngine:
                             bar()
 
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
-                stop_ = timeit.default_timer()
-                print(f'Time: {stop_ - start_}')
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
@@ -155,42 +162,58 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
-    def save_excel_(self, f_: xlsxwriter.Workbook, pg: int, block_size_: int, collection_name: str, folder_path_: str):
-        print("线程启动 ...")
+    def save_excel_(self, f_: xlsxwriter.Workbook, pg: int, block_size_: int, collection_name: str, folder_path_: str,
+                    ignore_error: bool):
         if f_:
-            work_sheet_ = f_.add_worksheet(f'Sheet{pg+1}')
-            doc_objs_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
-                block_size_)
+            work_sheet_ = f_.add_worksheet(f'Sheet{pg + 1}')
             # print(f"A{i + 1}", list(dict(doc).values()))
-            for i, doc in enumerate(doc_objs_):
-                work_sheet_.write_row(f"A{i + 1}", [
-                    '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
-                    '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '穷游', '2020-12-12', '无分类', 131246, '3', '2021-10-12 16:54:40', '其实我是岛酱', 1, '2021-10-12'])
+            doc_objs_ = self.collection_.find({}, {'_id': 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+                block_size_)
+            header_ = list(dict(doc_objs_[0]).keys())
+            work_sheet_.write_row(f"A1", header_)
+            if ignore_error:
+                for index_, doc_ in enumerate(doc_objs_):
+                    work_sheet_.write_row(f"A{index_ + 2}",
+                                          [doc_.get(_) if doc_.get(_) and isinstance(doc_.get(_), IGNORE_TYPE) else None
+                                           for _ in header_])
+            else:
+                [work_sheet_.write_row(f"A{index_ + 2}",
+                                       [i if isinstance(i, (int, float)) else str(i) for i in dict(doc_).values()]) for
+                 index_, doc_ in enumerate(doc_objs_)]
             return f'{Fore.GREEN} → {work_sheet_.name} is ok'
         else:
             filename = f'{collection_name}_{pg}.xlsx'
-            xf_ = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')
-            work_sheet_ = xf_.add_worksheet(f'Sheet{pg + 1}')
-            doc_list_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+            doc_objs_ = self.collection_.find({}, {"_id": 0}, batch_size=block_size_).skip(pg * block_size_).limit(
                 block_size_)
-            for i, doc in enumerate(doc_list_):
-                work_sheet_.write_row(f"A{i + 1}", [
-                    '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',
-                    '重庆', '8e712402-108e-4067-9daf-19d9a60345db', '[]', '2021-10-12'])
-            xf_.close()
-            return f'{Fore.GREEN} → {xf_.filename} is ok'
+            header_ = list(dict(doc_objs_[0]).keys())
+            with xlsxwriter.Workbook(f'{folder_path_}/{filename}') as work_book_:
+                work_sheet_ = work_book_.add_worksheet(f'Sheet{pg + 1}')
+                work_sheet_.write_row(f"A1", header_)
+                if ignore_error:
+                    for i, doc in enumerate(doc_objs_):
+                        # print(list(dict(doc).values()))
+                        write_list_ = [doc.get(x_) if doc.get(x_) and isinstance(doc.get(x_), IGNORE_TYPE) else None for
+                                       x_ in header_]
+                        work_sheet_.write_row(f"A{i + 2}", write_list_)
+                else:
+                    # work_sheet_._write_rows([list(dict(doc).values()) for i, doc in enumerate(doc_objs_)])
+                    for i, doc in enumerate(doc_objs_):
+                        write_list_ = [i if isinstance(i, int) else str(i) for i in dict(doc).values()]
+                        work_sheet_.write_row(f"A{i + 2}", write_list_)
+            return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
     def to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
-                 is_block: bool = False, block_size: int = 1000, mode: str = 'xlsx'):
+                 is_block: bool = False, block_size: int = 10000, mode: str = 'xlsx', ignore_error: bool = False):
         """
-        :param query:
-        :param folder_path:
-        :param filename:
-        :param _id:
-        :param limit:
-        :param is_block:
-        :param block_size:
-        :param mode: ['sheet' 'xlsx']
+        :param query: 数据库查询条件 字典类型
+        :param folder_path: 指定导出的目录
+        :param filename: 指定导出的文件名
+        :param _id: 是否导出 _id 默认否
+        :param limit: 限制数据表查询的条数
+        :param is_block: 是否分块导出
+        :param block_size: 块大小、is_block 为 True 时生效
+        :param mode: 枚举类型、 sheet(子表) 或 xlsx、is_block 为 True 时生效
+        :param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
         :return:
         """
         if query is None:
@@ -202,34 +225,30 @@ class MongoEngine:
         if not isinstance(_id, bool):
             raise TypeError("_id must be an boolean type")
         folder_path_ = check_folder_path(folder_path)
-
         if self.collection_:
             if filename is None:
                 filename = f'{self.collection}_.xlsx'
-            start_ = timeit.default_timer()
-            doc_objs_ = self.collection_.find(query, {'_id': 0}).limit(
-                limit) if limit != -1 else self.collection_.find(query, {'_id': 0})
             if is_block:
                 count_ = self.collection_.count_documents(query)
                 block_count_ = math.ceil(count_ / block_size)
-                print('线程数: ', block_count_)
+                # print('线程数: ', block_count_)
                 if mode not in ['xlsx', 'sheet']:
                     raise ValueError("mode must be specified as xlsx or sheet")
-                # 导出为多 xlsx
+                # 导出为 xlsx
                 if mode == 'xlsx':
-                    excel_concurrent_(self.save_excel_, None, self.collection, block_count_, block_size, folder_path_)
+                    excel_concurrent_(self.save_excel_, None, self.collection, block_count_, block_size, folder_path_,
+                                      ignore_error)
                     result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
-                    stop_ = timeit.default_timer()
-                    print(f'Time: {stop_ - start_}')
-                # 导出为多 sheet
+                # 导出为 sheet
                 else:
-                    f_ = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')
-                    excel_concurrent_(self.save_excel_, f_, self.collection, block_count_, block_size, folder_path_)
-                    f_.close()
+                    with xlsxwriter.Workbook(f'{folder_path_}/{filename}') as work_book_:
+                        excel_concurrent_(self.save_excel_, work_book_, self.collection, block_count_, block_size,
+                                          folder_path_, ignore_error)
                     result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
-                    stop_ = timeit.default_timer()
-                    print(f'Time: {stop_ - start_}')
             else:
+                doc_objs_ = self.collection_.find(query, {'_id': 0}).limit(
+                    limit) if limit != -1 else self.collection_.find(query, {'_id': 0})
+
                 """
                 todo xlwings
                 import xlwings as xw
@@ -251,26 +270,30 @@ class MongoEngine:
                 wb.close()
                 """
 
-                f = xlsxwriter.Workbook(filename=f'{folder_path_}/{filename}')  # 创建excel文件
-                worksheet1 = f.add_worksheet('操作日志')  # 括号内为工作表表名
-                title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
-                count_ = self.collection_.count_documents(query)
-                with alive_bar(count_, title=title_, bar="blocks") as bar:
-                    for i, doc in enumerate(doc_objs_):
-                        worksheet1.write_row(f"A{i + 1}", [
-                            '重庆江景登高看才显得壮观，但长江索道排队很长，南山一棵树人多拥挤。最后我选择了鹅岭公园看江景，公园里瞰胜楼五块钱的门票爬到顶层，就能俯瞰重庆雾气缭绕的江景。一边长江一边嘉陵江，能看到颜色的差别，遗憾之处就是雾气笼罩着江水，有点模糊，但人就是要接受一些美中不足。鹅岭公园本身也很漂亮，里面有一些园林设计，植被茂盛，很有南方的感觉。',])
-                        bar()
-                    f.close()
-
+                with xlsxwriter.Workbook(f'{folder_path_}/{filename}') as work_book_:
+                    work_sheet_ = work_book_.add_worksheet('Sheet1')
+                    title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
+                    count_ = self.collection_.count_documents(query)
+                    with alive_bar(count_, title=title_, bar="blocks") as bar:
+                        header_ = list(dict(doc_objs_[0]).keys())
+                        work_sheet_.write_row(f"A1", header_)
+                        if ignore_error:
+                            for i, doc in enumerate(doc_objs_):
+                                write_list_ = [
+                                    doc.get(x_) if doc.get(x_) and isinstance(doc.get(x_), IGNORE_TYPE) else None
+                                    for x_ in header_]
+                                work_sheet_.write_row(f"A{i + 2}", write_list_)
+                                bar()
+                        else:
+                            for i, doc in enumerate(doc_objs_):
+                                work_sheet_.write_row(f"A{i + 2}", list(dict(doc).values()))
+                                bar()
                 """
                 todo pandas
                 doc_list_ = list(doc_objs_)
                 data = DataFrame(doc_list_)
                 data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
                 """
-
-                stop_ = timeit.default_timer()
-                print(f'Time: {stop_ - start_}')
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
         else:
@@ -279,7 +302,18 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
-    def to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
+    def to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
+                is_block: bool = False, block_size: int = 1000):
+        """
+        :param query: 数据库查询条件、字典类型、只作用于单表导出
+        :param folder_path: 指定导出的目录
+        :param filename: 指定导出的文件名
+        :param _id: 是否导出 _id 默认否
+        :param limit: 限制数据表查询的条数
+        :param is_block: 是否分块导出
+        :param block_size: 块大小、is_block 为 True 时生效
+        :return:
+        """
         if query is None:
             query = {}
         if not isinstance(query, dict):
@@ -307,7 +341,18 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
-    def to_pickle(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
+    def to_pickle(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
+                  is_block: bool = False, block_size: int = 1000, ):
+        """
+        :param query: 数据库查询条件、字典类型、只作用于单表导出
+        :param folder_path: 指定导出的目录
+        :param filename: 指定导出的文件名
+        :param _id: 是否导出 _id 默认否
+        :param limit: 限制数据表查询的条数
+        :param is_block: 是否分块导出
+        :param block_size: 块大小、is_block 为 True 时生效
+        :return:
+        """
         if query is None:
             query = {}
         if not isinstance(query, dict):
@@ -329,9 +374,17 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
 
-    def to_feather(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
+    def to_feather(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
+                   is_block: bool = False, block_size: int = 1000, ):
         """
         pip[conda] install pyarrow
+        :param query: 数据库查询条件、字典类型、只作用于单表导出
+        :param folder_path: 指定导出的目录
+        :param filename: 指定导出的文件名
+        :param _id: 是否导出 _id 默认否
+        :param limit: 限制数据表查询的条数
+        :param is_block: 是否分块导出
+        :param block_size: 块大小、is_block 为 True 时生效
         """
         if query is None:
             query = {}
@@ -353,7 +406,8 @@ class MongoEngine:
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
 
-    def to_parquet(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
+    def to_parquet(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
+                   is_block: bool = False, block_size: int = 1000):
         if query is None:
             query = {}
         if not isinstance(query, dict):
@@ -371,34 +425,6 @@ class MongoEngine:
             doc_list_ = list(doc_objs_)
             data = DataFrame(doc_list_)
             data.to_parquet(path=f'{folder_path_}/{filename}')
-            result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
-            return result_
-
-    def to_hdf5(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1):
-        """
-        pip[conda] install pytables
-        """
-        if query is None:
-            query = {}
-        if not isinstance(query, dict):
-            raise TypeError('query must be of dict type')
-        if not isinstance(limit, int):
-            raise TypeError("limit must be an integer type")
-        if not isinstance(_id, bool):
-            raise TypeError("_id must be an boolean type")
-        folder_path_ = check_folder_path(folder_path)
-        if self.collection_:
-            if filename is None:
-                filename = f'{self.collection}_{to_str_datetime()}.h5'
-            doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
-                limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
-            doc_list_ = list(doc_objs_)
-            data = DataFrame(doc_list_)
-
-            data.to_hdf('temp.h5', key='df', mode='w')
-            # h5 = pd.HDFStore(f'{folder_path_}/{filename}', 'w', complevel=4, complib='blosc')
-            # h5['df_'] = data
-            # h5.close()
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
 
@@ -444,4 +470,4 @@ if __name__ == '__main__':
         collection='comment'
     )
     # M.to_csv(folder_path="_csv", is_block=True, block_size=20000)
-    M.to_excel(folder_path="_excel", is_block=True, block_size=20000, mode='xlsx')
+    M.to_excel(folder_path="_excel", is_block=True, block_size=10000, mode='sheet', ignore_error=True)

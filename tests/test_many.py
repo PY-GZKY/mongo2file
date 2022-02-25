@@ -3,7 +3,7 @@ import os
 import dotenv
 import pytest
 
-from mongov import MongoEngine
+from mongo2file import MongoEngine
 
 dotenv.load_dotenv(verbose=True)
 

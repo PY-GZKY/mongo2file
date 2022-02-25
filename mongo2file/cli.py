@@ -6,8 +6,8 @@ from .version import __version__
 init(autoreset=True)
 
 
-@click.command("mongov")
-@click.version_option(__version__, '-V', '--version', prog_name='mongov')
+@click.command("mongo2file")
+@click.version_option(__version__, '-V', '--version', prog_name='mongo2file')
 def cli():
     ...
 
