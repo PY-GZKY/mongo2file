@@ -65,31 +65,25 @@ def concurrent_(func, collection_names, folder_path):
                 ...
 
 
-def excel_concurrent_(func, f_, collection_name, black_count_, block_size_, folder_path_):
+def excel_concurrent_(func, f_, collection_name, black_count_, block_size_, folder_path_, ignore_error):
     title_ = f'{Fore.GREEN} {collection_name} → {folder_path_}'
     with alive_bar(black_count_, title=title_, bar="blocks") as bar:
-        with ThreadPoolExecutor(max_workers=black_count_) as executor:
+        with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
             for pg in range(black_count_):
-                executor.submit(func, f_, pg, block_size_, collection_name, folder_path_).add_done_callback(
-                    lambda bar_: bar())
+                executor.submit(func, f_, pg, block_size_, collection_name, folder_path_,
+                                ignore_error).add_done_callback(lambda bar_: bar())
             executor.shutdown()
 
 
-def csv_concurrent_(func, collection_name, black_count_, block_size_, folder_path_):
+def csv_concurrent_(func, collection_name, black_count_, block_size_, folder_path_, ignore_error):
     title_ = f'{Fore.GREEN} {collection_name} → {folder_path_}'
     with alive_bar(black_count_, title=title_, bar="blocks") as bar:
-        with ThreadPoolExecutor(max_workers=black_count_) as executor:
+        with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
             for pg in range(black_count_):
-                executor.submit(func, pg, block_size_, collection_name, folder_path_).add_done_callback(
+                executor.submit(func, pg, block_size_, collection_name, folder_path_, ignore_error).add_done_callback(
                     lambda func: bar())
             executor.shutdown()
             # wait(futures_, return_when=ALL_COMPLETED)
             # for future_ in as_completed(futures_):
             #     if future_.done():
             #         print(future_.result())
-
-
-
-
-
-
