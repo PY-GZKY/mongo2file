@@ -6,13 +6,13 @@ from setuptools import setup
 description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 
-version = SourceFileLoader('version', 'mongov/version.py').load_module()
+version = SourceFileLoader('version', 'mongo2file/version.py').load_module()
 readme = Path(__file__).parent / 'README.md'
 if readme.exists():
     long_description = readme.read_text(encoding='utf-8')
 
 setup(
-    name='mongov',
+    name='mongo2file',
     version=version.__version__,
     description=description,
     long_description=long_description,
@@ -45,12 +45,12 @@ setup(
     author_email='341796767@qq.com',
     url='https://github.com/PY-GZKY/mongov',
     license='MIT',
-    packages=['mongov'],
+    packages=['mongo2file'],
     include_package_data=True,
     zip_safe=True,
     entry_points="""
         [console_scripts]
-        mongov=mongov.cli:cli
+        mongo2file=mongo2file.cli:cli
     """,
     install_requires=[
         'click>=6.7',
