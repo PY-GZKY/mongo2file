@@ -12,7 +12,7 @@ from bson import ObjectId
 from colorama import Fore
 from dateutil import tz
 
-from mongo2file.constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS
+from constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS
 
 
 def get_user_name():
@@ -56,13 +56,13 @@ def serialize_obj(obj):
         return json.dumps(dict(obj), ensure_ascii=False, default=_alchemy_encoder)
 
 
-def concurrent_(func, collection_names, folder_path):
-    with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
-        futures_ = [executor.submit(func, collection_name, folder_path) for collection_name in collection_names]
-        wait(futures_, return_when=ALL_COMPLETED)
-        for future_ in as_completed(futures_):
-            if future_.done():
-                ...
+def concurrent_(func, db, collection_names, folder_path):
+    title_ = f'{Fore.GREEN} {db} → {folder_path}'
+    with alive_bar(len(collection_names), title=title_, bar="blocks") as bar:
+        with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
+            for collection_name in collection_names:
+                executor.submit(func, collection_name, folder_path).add_done_callback(lambda bar_: bar())
+            executor.shutdown()
 
 
 def excel_concurrent_(func, f_, collection_name, black_count_, block_size_, folder_path_, ignore_error):
