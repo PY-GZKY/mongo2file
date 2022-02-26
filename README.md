@@ -107,8 +107,6 @@ def to_json():
 从而大大减少的读取的时间。
 
 ---
-
----
 ## `mongo2file` 的改进
 
 对于 `mongodb` 的全表查询、条件查询、聚合操作、以及索引操作(当数据达到一定量级时建议) 并不是直接影响
@@ -139,5 +137,50 @@ _这是一件非常可怕的事情_。
 ## 一些建议
 
 - 而比较恰当合理的做法就是在存储 mongodb 文档时不要存入类似于 []、{} 的这种对原始数据无意义的空对象。
+
+## Reference
+
+### `to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,is_block: bool = False, block_size: int = 1000, ignore_error: bool = False)`
+
+
+```
+:param query: 数据库查询条件、字典类型、只作用于单表导出
+:param folder_path: 指定导出的目录
+:param filename: 指定导出的文件名
+:param _id: 是否导出 _id 默认否
+:param limit: 限制数据表查询的条数
+:param is_block: 是否分块导出
+:param block_size: 块大小、is_block 为 True 时生效
+:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
+```
+---
+
+### `to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,is_block: bool = False, block_size: int = 1000, ignore_error: bool = False)`
+
+```
+:param query: 数据库查询条件、字典类型、只作用于单表导出
+:param folder_path: 指定导出的目录
+:param filename: 指定导出的文件名
+:param _id: 是否导出 _id 默认否
+:param limit: 限制数据表查询的条数
+:param is_block: 是否分块导出
+:param block_size: 块大小、is_block 为 True 时生效
+:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
+```
+
+---
+
+### `to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,is_block: bool = False, block_size: int = 1000, ignore_error: bool = False)`
+
+```
+:param query: 数据库查询条件、字典类型、只作用于单表导出
+:param folder_path: 指定导出的目录
+:param filename: 指定导出的文件名
+:param _id: 是否导出 _id 默认否
+:param limit: 限制数据表查询的条数
+:param is_block: 是否分块导出
+:param block_size: 块大小、is_block 为 True 时生效
+:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
+```
 
 
