@@ -18,7 +18,7 @@ from pymongo import MongoClient
 
 from .constants import *
 from .utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, json_concurrent_, \
-    serialize_dict
+    schema_
 
 load_dotenv(verbose=True)
 colorama_init_(autoreset=True)
@@ -129,7 +129,7 @@ class MongoEngine:
 
                 title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
                 count_ = self.collection_.count_documents(query)
-                doc_list_ = [serialize_dict(doc_) for  doc_ in doc_list]
+                doc_list_ = [schema_(doc_) for doc_ in doc_list]
                 # schema_ = pa.schema([
                 #     ('city', pa.string()),
                 #     ('content', pa.string()),
@@ -138,21 +138,19 @@ class MongoEngine:
                 #     ('username', pa.string()),
                 #     # ('update_date', pa.string())
                 # ])
-                df_ = pa.Table.from_pylist(mapping=doc_list_,schema=None)
+                df_ = pa.Table.from_pylist(mapping=doc_list_, schema=None)
                 options = pa_csv_.WriteOptions(include_header=False)
                 with pa_csv_.CSVWriter(f'{folder_path_}/{filename}', df_.schema) as writer:
                     writer.write_table(df_)
 
-
-
                 # with alive_bar(count_, title=title_, bar="blocks") as bar:
-                    # with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
-                    #     writer = csv.writer(csvfile)
-                    #     writer.writerow(list(dict(doc_list[0]).keys()))
-                    #     # writer.writerows([list(dict(data_).values()) for data_ in doc_list])
-                    #     for data_ in doc_list:
-                    #         writer.writerow(list(dict(data_).values()))
-                    #         bar()
+                # with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
+                #     writer = csv.writer(csvfile)
+                #     writer.writerow(list(dict(doc_list[0]).keys()))
+                #     # writer.writerows([list(dict(data_).values()) for data_ in doc_list])
+                #     for data_ in doc_list:
+                #         writer.writerow(list(dict(data_).values()))
+                #         bar()
 
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
