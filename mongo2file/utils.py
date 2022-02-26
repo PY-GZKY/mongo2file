@@ -12,7 +12,7 @@ from bson import ObjectId
 from colorama import Fore
 from dateutil import tz
 
-from constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS
+from .constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS
 
 
 def get_user_name():
@@ -56,12 +56,26 @@ def serialize_obj(obj):
         return json.dumps(dict(obj), ensure_ascii=False, default=_alchemy_encoder)
 
 
+def schema_(obj: dict):
+    return {k: v for k, v in obj.items() if isinstance(v, str)}
+
+
 def concurrent_(func, db, collection_names, folder_path):
     title_ = f'{Fore.GREEN} {db} → {folder_path}'
     with alive_bar(len(collection_names), title=title_, bar="blocks") as bar:
         with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
             for collection_name in collection_names:
                 executor.submit(func, collection_name, folder_path).add_done_callback(lambda bar_: bar())
+            executor.shutdown()
+
+
+def json_concurrent_(func, collection_name, black_count_, block_size_, folder_path_):
+    title_ = f'{Fore.GREEN} {collection_name} → {folder_path_}'
+    with alive_bar(black_count_, title=title_, bar="blocks") as bar:
+        with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS) as executor:
+            for pg in range(black_count_):
+                executor.submit(func, pg, block_size_, collection_name, folder_path_).add_done_callback(
+                    lambda func: bar())
             executor.shutdown()
 
 
