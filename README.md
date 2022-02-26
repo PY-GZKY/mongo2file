@@ -140,8 +140,7 @@ _这是一件非常可怕的事情_。
 
 ## Reference
 
-### `to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,is_block: bool = False, block_size: int = 1000, ignore_error: bool = False)`
-
+### _to_csv(query, folder_path, filename, ...)_
 
 ```
 :param query: 数据库查询条件、字典类型、只作用于单表导出
@@ -155,7 +154,8 @@ _这是一件非常可怕的事情_。
 ```
 ---
 
-### `to_excel(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,is_block: bool = False, block_size: int = 1000, ignore_error: bool = False)`
+### _to_excel(query, folder_path, filename, ...)_
+
 
 ```
 :param query: 数据库查询条件、字典类型、只作用于单表导出
@@ -170,7 +170,7 @@ _这是一件非常可怕的事情_。
 
 ---
 
-### `to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,is_block: bool = False, block_size: int = 1000, ignore_error: bool = False)`
+### _to_json(query, folder_path, filename, ...)_
 
 ```
 :param query: 数据库查询条件、字典类型、只作用于单表导出
