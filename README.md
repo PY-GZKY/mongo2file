@@ -109,6 +109,13 @@ def to_json():
 
 `pickle`、`feather`、`parquet` 是 `Python` 序列化数据的一种文件格式, 它把数据转成二进制进行存储。 从而大大减少的读取的时间。
 
+Feather 其实是 Apache Arrow 项目中包含的一种数据格式，但是由于其优异的性能，该文件格式也被单独打包，放在 pip 中进行安装。
+
+Pandas 也支持对 Feather 的读写操作。
+
+最初是为了 Python 和 R 之间快速交互而设计的，初衷很简单，就是尽可能高效地完成数据在内存中转换的效率。
+
+难能可贵的是，R、Julia、python 均可以解析 feather ，可以说是3种语言之间进行交互的强力工具了，读写速度一流。
 ---
 
 ## `mongo2file` 的改进
@@ -153,7 +160,6 @@ _这是一件非常可怕的事情_。
 :param limit: 限制数据表查询的条数
 :param is_block: 是否分块导出
 :param block_size: 块大小、is_block 为 True 时生效
-:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
 ```
 
 ---
@@ -168,7 +174,8 @@ _这是一件非常可怕的事情_。
 :param limit: 限制数据表查询的条数
 :param is_block: 是否分块导出
 :param block_size: 块大小、is_block 为 True 时生效
-:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
+:param mode: 导出模式, 枚举类型、sheet 或 xlsx, 当 is_block 为 True 时生效
+:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将一定程度上影响程序的性能
 ```
 
 ---
@@ -183,7 +190,12 @@ _这是一件非常可怕的事情_。
 :param limit: 限制数据表查询的条数
 :param is_block: 是否分块导出
 :param block_size: 块大小、is_block 为 True 时生效
-:param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
 ```
 
 
+
+### _to_feather(query, folder_path, filename, ...)_
+
+### _to_feather(query, folder_path, filename, ...)_
+
+### _to_feather(query, folder_path, filename, ...)_
