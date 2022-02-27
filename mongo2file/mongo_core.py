@@ -16,8 +16,8 @@ import pyarrow.csv as pa_csv_
 from pandas import DataFrame
 from pymongo import MongoClient
 
-from .constants import *
-from .utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, json_concurrent_, \
+from constants import *
+from utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, json_concurrent_, \
     schema_
 
 load_dotenv(verbose=True)
@@ -376,18 +376,22 @@ class MongoEngine:
             return result_
 
     def save_csv_(self, pg: int, block_size_: int, collection_name: str, folder_path_: str, ignore_error: bool):
-        doc_list_ = self.collection_.find({}, {'_id': 0}, batch_size=block_size_).skip(pg * block_size_).limit(
+        doc_objs_ = self.collection_.find({}, {'_id': 0}, batch_size=block_size_).skip(pg * block_size_).limit(
             block_size_)
         filename = f'{collection_name}_{pg}.csv'
         # filename = f'{collection_name}_{str(uuid.uuid4())}.csv'
+        doc_list_ = [schema_(doc_) for doc_ in doc_objs_]
+        df_ = pa.Table.from_pylist(mapping=doc_list_, schema=None)
+        with pa_csv_.CSVWriter(f'{folder_path_}/{filename}', df_.schema) as writer:
+            writer.write_table(df_)
 
-        with codecs.open(f'{folder_path_}/{filename}', 'w', encoding=PANDAS_ENCODING) as csvfile:
-            writer = csv.writer(csvfile)
-            if ignore_error:
-                ...
-            else:
-                writer.writerow(list(dict(doc_list_[0]).keys()))
-                writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
+        # with codecs.open(f'{folder_path_}/{filename}', 'w', encoding=PANDAS_ENCODING) as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     if ignore_error:
+        #         ...
+        #     else:
+        #         writer.writerow(list(dict(doc_list_[0]).keys()))
+        #         writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
                 # for data_ in doc_list_: writer.writerow(list(dict(data_).values()))
 
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
@@ -483,9 +487,9 @@ if __name__ == '__main__':
         port=27017,
         username='admin',
         password='sanmaoyou_admin_',
-        database='sm_admin_test',
-        # collection='xhs_chengdu'
+        database='arrow测试库',
+        collection='arrow测试表_200000'
     )
-    M.to_csv(folder_path="_csv")
-    # M.to_csv(folder_path="_csv", is_block=True, block_size=20000)
+    # M.to_csv(folder_path="_csv")
+    M.to_csv(folder_path="_csv", is_block=1, block_size=50000)
     # M.to_excel(folder_path="_excel", is_block=True, block_size=10000, mode='sheet', ignore_error=True)
