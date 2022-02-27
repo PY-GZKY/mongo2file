@@ -12,7 +12,7 @@ from bson import ObjectId
 from colorama import Fore
 from dateutil import tz
 
-from .constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS
+from constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS
 
 
 def get_user_name():
