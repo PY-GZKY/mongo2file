@@ -13,13 +13,13 @@ def setup_function():
         port=27017,
         username='admin',
         password='sanmaoyou_admin_',
-        database='sm_admin_test',
-        collection='comment'
+        database='arrow测试库',
+        collection='arrow测试表'
     )
 
 
 def test_to_csv():
-    result_ = M.to_csv(folder_path="_csv",is_block=False,block_size=10000)
+    result_ = M.to_csv(folder_path="_csv",is_block=True,block_size=100000)
     print(result_)
     assert "successfully" in result_
 
