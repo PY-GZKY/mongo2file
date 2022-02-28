@@ -4,7 +4,12 @@ from pathlib import Path
 from setuptools import setup
 
 description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
-long_description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
+readme = Path(__file__).parent / 'README.md'
+if readme.exists():
+    long_description = readme.read_text()
+else:
+    long_description = description + '.\n\nSee https://mongo2file.readthedocs.io for documentation.'
+
 
 version = SourceFileLoader('version', 'mongo2file/version.py').load_module()
 readme = Path(__file__).parent / 'README.md'
@@ -43,7 +48,7 @@ setup(
     python_requires='>=3.7',
     author='PY-GZKY',
     author_email='341796767@qq.com',
-    url='https://github.com/PY-GZKY/mongov',
+    url='https://github.com/PY-GZKY/mongo2file',
     license='MIT',
     packages=['mongo2file'],
     include_package_data=True,
