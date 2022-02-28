@@ -1,24 +1,21 @@
 # -*- coding:utf-8 -*-
-import codecs
-import csv
 import math
 import os
 import warnings
 from typing import Optional
-
-import feather
+import pyarrow.csv as pa_csv_
+import pyarrow.feather as pa_feather_
+import pyarrow.parquet as pa_parquet_
+import pyarrow as pa
 import xlsxwriter
 from alive_progress import alive_bar
 from colorama import init as colorama_init_, Fore
 from dotenv import load_dotenv
-import pyarrow as pa
-import pyarrow.csv as pa_csv_
-from pandas import DataFrame
 from pymongo import MongoClient
 
-from constants import *
-from utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, json_concurrent_, \
-    schema_
+from mongo2file.constants import *
+from mongo2file.utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, \
+    json_concurrent_, schema_, no_collection_to_csv_, no_collection_to_excel_, no_collection_to_json_
 
 load_dotenv(verbose=True)
 colorama_init_(autoreset=True)
@@ -71,7 +68,7 @@ class MongoEngine:
             self.collection_ = None
 
     def to_csv(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
-               is_block: bool = False, block_size: int = 1000, ignore_error: bool = False):
+               is_block: bool = False, block_size: int = 10000, ignore_error: bool = False):
         """
         :param query: 数据库查询条件、字典类型、只作用于单表导出
         :param folder_path: 指定导出的目录
@@ -127,8 +124,7 @@ class MongoEngine:
                 df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
                 """
 
-                title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
-                count_ = self.collection_.count_documents(query)
+
                 doc_list_ = [schema_(doc_) for doc_ in doc_list]
                 # schema_ = pa.schema([
                 #     ('city', pa.string()),
@@ -138,11 +134,12 @@ class MongoEngine:
                 #     ('username', pa.string()),
                 #     # ('update_date', pa.string())
                 # ])
-                df_ = pa.Table.from_pylist(mapping=doc_list_, schema=None)
-                options = pa_csv_.WriteOptions(include_header=False)
+                df_ = pa.Table.from_pylist(mapping=doc_list_, schema=None, metadata=None)
                 with pa_csv_.CSVWriter(f'{folder_path_}/{filename}', df_.schema) as writer:
                     writer.write_table(df_)
 
+                # title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
+                # count_ = self.collection_.count_documents(query)
                 # with alive_bar(count_, title=title_, bar="blocks") as bar:
                 # with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
                 #     writer = csv.writer(csvfile)
@@ -156,7 +153,7 @@ class MongoEngine:
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
-            self.to_csv_s_(folder_path_)
+            self.to_many_collection_(no_collection_to_csv_, folder_path_, ignore_error)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
@@ -225,6 +222,12 @@ class MongoEngine:
                 wb.close()
                 """
 
+                """
+                doc_list_ = [schema_(doc_) for doc_ in doc_objs_]
+                df_ = pa.Table.from_pylist(mapping=doc_list_, schema=None)
+                df_.to_pandas().to_excel(excel_writer=f'{folder_path}/{filename}.xlsx', index=False, encoding=PANDAS_ENCODING)
+                """
+
                 with xlsxwriter.Workbook(f'{folder_path_}/{filename}') as work_book_:
                     work_sheet_ = work_book_.add_worksheet('Sheet1')
                     title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
@@ -246,22 +249,17 @@ class MongoEngine:
                                                dict(doc).values()]
                                 work_sheet_.write_row(f"A{index_ + 2}", write_list_)
                                 bar()
-                """
-                todo pandas
-                doc_list_ = list(doc_objs_)
-                data = DataFrame(doc_list_)
-                data.to_excel(excel_writer=f'{folder_path_}/{filename}', sheet_name=filename, engine='xlsxwriter', index=False,encoding=PANDAS_ENCODING)
-                """
+
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
-            self.to_excel_s_(folder_path_)
+            self.to_many_collection_(no_collection_to_excel_, folder_path_, ignore_error)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
     def to_json(self, query=None, folder_path: str = None, filename: str = None, _id: bool = False, limit: int = -1,
-                is_block: bool = False, block_size: int = 10000):
+                is_block: bool = False, block_size: int = 10000, ignore_error: bool = False):
         """
         :param query: 数据库查询条件、字典类型、只作用于单表导出
         :param folder_path: 指定导出的目录
@@ -288,7 +286,8 @@ class MongoEngine:
                 if is_block:
                     count_ = self.collection_.count_documents(query)
                     block_count_ = math.ceil(count_ / block_size)
-                    json_concurrent_(self.save_json_, self.collection, block_count_, block_size, folder_path_, )
+                    json_concurrent_(self.save_json_, self.collection, block_count_, block_size, folder_path_,
+                                     ignore_error)
                     result_ = ECHO_INFO.format(Fore.GREEN, self.collection, folder_path_)
                 else:
                     doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
@@ -301,7 +300,7 @@ class MongoEngine:
                 return result_
         else:
             warnings.warn('No collection specified, All collections will be exported.', DeprecationWarning)
-            self.to_json_s_(folder_path_)
+            self.to_many_collection_(no_collection_to_json_, folder_path_, ignore_error)
             result_ = ECHO_INFO.format(Fore.GREEN, self.database, folder_path_)
             return result_
 
@@ -321,9 +320,12 @@ class MongoEngine:
                 filename = f'{self.collection}_{to_str_datetime()}.pkl'
             doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
                 limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
-            doc_list_ = list(doc_objs_)
-            data = DataFrame(doc_list_)
-            data.to_pickle(path=f'{folder_path_}/{filename}')
+            doc_list_ = [schema_(doc_) for doc_ in doc_objs_]
+
+            import pickle
+            with open(f'{folder_path_}/{filename}', 'wb') as f:
+                pickle.dump(doc_list_, f)
+
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
 
@@ -345,11 +347,10 @@ class MongoEngine:
                 filename = f'{self.collection}_{to_str_datetime()}.feather'
             doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
                 limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
-            df_ = pa.Table.from_pylist(doc_objs_)
-            feather.write_dataframe(df_, f'{folder_path_}/{filename}')
-
-            # data = DataFrame(doc_list_)
-            # data.to_feather(path=f'{folder_path_}/{filename}')
+            doc_list_ = [schema_(doc_) for doc_ in doc_objs_]
+            df_ = pa.Table.from_pylist(mapping=doc_list_)
+            with open(f'{folder_path_}/{filename}', 'wb') as f:
+                pa_feather_.write_feather(df_, f)
 
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
@@ -369,13 +370,14 @@ class MongoEngine:
                 filename = f'{self.collection}_{to_str_datetime()}.parquet'
             doc_objs_ = self.collection_.find(query, {"_id": 0}).limit(
                 limit) if limit != -1 else self.collection_.find(query, {"_id": 0})
-            doc_list_ = list(doc_objs_)
-            data = DataFrame(doc_list_)
-            data.to_parquet(path=f'{folder_path_}/{filename}')
+            doc_list_ = [schema_(doc_) for doc_ in doc_objs_]
+            df_ = pa.Table.from_pylist(mapping=doc_list_)
+            with open(f'{folder_path_}/{filename}', 'wb') as f:
+                pa_parquet_.write_table(df_, f)
             result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
 
-    def save_csv_(self, pg: int, block_size_: int, collection_name: str, folder_path_: str, ignore_error: bool):
+    def save_csv_(self, pg: int, block_size_: int, collection_name: str, folder_path_: str, ignore_error: bool = False):
         doc_objs_ = self.collection_.find({}, {'_id': 0}, batch_size=block_size_).skip(pg * block_size_).limit(
             block_size_)
         filename = f'{collection_name}_{pg}.csv'
@@ -392,7 +394,7 @@ class MongoEngine:
         #     else:
         #         writer.writerow(list(dict(doc_list_[0]).keys()))
         #         writer.writerows([list(dict(data_).values()) for data_ in doc_list_])
-                # for data_ in doc_list_: writer.writerow(list(dict(data_).values()))
+        # for data_ in doc_list_: writer.writerow(list(dict(data_).values()))
 
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
@@ -449,36 +451,12 @@ class MongoEngine:
             f.write(serialize_obj(data))
         return f'{Fore.GREEN} → {folder_path_}/{filename} is ok'
 
-    def no_collection_to_csv_(self, collection_: str, folder_path: str, _id: bool = False):
-        if collection_:
-            filename = f'{collection_}_{to_str_datetime()}.csv'
-            doc_objs_ = self.db_[collection_].find({}, {"_id": 0})
-            data = DataFrame(list(doc_objs_))
-            data.to_csv(path_or_buf=f'{folder_path}/{filename}', index=False, encoding=PANDAS_ENCODING)
+    def to_many_collection_(self, func, folder_path: str, ignore_error: bool):
+        concurrent_(func, self.database, self.get_collection_objs_(), folder_path, ignore_error)
 
-    def no_collection_to_excel_(self, collection_: str, folder_path: str, _id: bool = False):
-        if collection_:
-            filename = f'{collection_}_{to_str_datetime()}.xlsx'
-            doc_objs_ = self.db_[collection_].find({}, {"_id": 0})
-            data = DataFrame(list(doc_objs_))
-            data.to_excel(excel_writer=f'{folder_path}/{filename}.xlsx', index=False, encoding=PANDAS_ENCODING)
-
-    def no_collection_to_json_(self, collection_: str, folder_path: str, _id: bool = False):
-        if collection_:
-            filename = f'{collection_}_{to_str_datetime()}.json'
-            doc_objs_ = self.db_[collection_].find({}, {"_id": 0})
-            data = {'RECORDS': list(doc_objs_)}
-            with open(f'{folder_path}/{filename}', 'w', encoding="utf-8") as f:
-                f.write(serialize_obj(data))
-
-    def to_csv_s_(self, folder_path: str):
-        concurrent_(self.no_collection_to_csv_, self.database, self.collection_names, folder_path)
-
-    def to_excel_s_(self, folder_path: str):
-        concurrent_(self.no_collection_to_excel_, self.database, self.collection_names, folder_path)
-
-    def to_json_s_(self, folder_path: str):
-        concurrent_(self.no_collection_to_json_, self.database, self.collection_names, folder_path)
+    def get_collection_objs_(self):
+        return [{"collection_name": collection_name, "collection_": self.db_[collection_name]} for
+                collection_name in self.collection_names]
 
 
 if __name__ == '__main__':
@@ -491,5 +469,5 @@ if __name__ == '__main__':
         collection='arrow测试表_200000'
     )
     # M.to_csv(folder_path="_csv")
-    M.to_csv(folder_path="_csv", is_block=1, block_size=50000)
-    # M.to_excel(folder_path="_excel", is_block=True, block_size=10000, mode='sheet', ignore_error=True)
+    # M.to_csv(folder_path="_csv", is_block=False, block_size=50000)
+    M.to_excel(folder_path="_excel", is_block=False, block_size=10000, mode='sheet', ignore_error=True)
