@@ -199,3 +199,11 @@ _这是一件非常可怕的事情_。
 ### _to_feather(query, folder_path, filename, ...)_
 
 ### _to_feather(query, folder_path, filename, ...)_
+
+
+### 兼容性
+
+mongo2file 依赖于 PyArrow 库。
+它是 C++ Arrow 的 Python 版本实现。
+
+PyArrow 目前与 Python 3.7、3.8、3.9 和 3.10 兼容。 如果您在 Windows 上遇到任何 pip 轮的导入问题，您可能需要安装Visual C++ Redistributable for Visual Studio 2015。
