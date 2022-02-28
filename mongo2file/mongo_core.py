@@ -124,7 +124,6 @@ class MongoEngine:
                 df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
                 """
 
-
                 doc_list_ = [schema_(doc_) for doc_ in doc_list]
                 # schema_ = pa.schema([
                 #     ('city', pa.string()),
@@ -268,6 +267,7 @@ class MongoEngine:
         :param limit: 限制数据表查询的条数
         :param is_block: 是否分块导出
         :param block_size: 块大小、is_block 为 True 时生效
+        :param ignore_error: 是否忽略错误、数据表中存在非序列化类型时使用、这将影响程序的性能
         :return:
         """
         if query is None:
@@ -459,15 +459,3 @@ class MongoEngine:
                 collection_name in self.collection_names]
 
 
-if __name__ == '__main__':
-    M = MongoEngine(
-        host='192.168.0.141',
-        port=27017,
-        username='admin',
-        password='sanmaoyou_admin_',
-        database='arrow测试库',
-        collection='arrow测试表_200000'
-    )
-    # M.to_csv(folder_path="_csv")
-    # M.to_csv(folder_path="_csv", is_block=False, block_size=50000)
-    M.to_excel(folder_path="_excel", is_block=False, block_size=10000, mode='sheet', ignore_error=True)
