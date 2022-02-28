@@ -1,7 +1,7 @@
 <h1 align="center">↻ Mongo2file</h1>
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.7 | 3.8 | 3.9-blue" />
-  <img src="https://img.shields.io/badge/license-MIT-green" />
+  <img src="https://img.shields.io/badge/license-Apache-green" />
   <img src="https://img.shields.io/badge/pypi-v1.0.1-red" />
 </p>
 
