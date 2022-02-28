@@ -10,7 +10,6 @@ if readme.exists():
 else:
     long_description = description + '.\n\nSee https://mongo2file.readthedocs.io for documentation.'
 
-
 version = SourceFileLoader('version', 'mongo2file/version.py').load_module()
 readme = Path(__file__).parent / 'README.md'
 if readme.exists():
@@ -59,13 +58,14 @@ setup(
     """,
     install_requires=[
         'click>=6.7',
+        'alive_progress==2.3.1',
         'colorama==0.4.4',
-        'pandas==1.3.0',
+        'pyarrow==7.0.0',
         'pymongo==3.11.4',
-        'PyMySQL==0.9.3',
+        'pytest==6.2.5',
         'python-dotenv==0.19.2',
         'python_dateutil==2.8.2',
         'setuptools==60.0.3',
-        'pyarrow==7.0.0',
+        'XlsxWriter==3.0.2'
     ],
 )
