@@ -45,5 +45,5 @@ def to_json():
 
 ```
 
-> 有关更多 [mongo2file](https://github.com/) 详细信息，请参阅文档。
+> 有关更多 [mongo2file](https://mongo2file.readthedocs.io/) 详细信息，请参阅文档。
 
