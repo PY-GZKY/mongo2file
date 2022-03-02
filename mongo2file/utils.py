@@ -14,7 +14,7 @@ from colorama import Fore
 from dateutil import tz
 import pyarrow as pa
 
-from mongo2file.constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS, IGNORE_TYPE
+from .constants import TIME_ZONE, THREAD_POOL_MAX_WORKERS, IGNORE_TYPE
 
 
 def get_user_name():
