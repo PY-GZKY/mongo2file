@@ -14,7 +14,7 @@ def setup_function():
         username='admin',
         password='sanmaoyou_admin_',
         database='arrow测试库',
-        # collection='arrow测试表_200000'
+        collection='arrow测试表_200000'
     )
 
 
