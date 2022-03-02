@@ -6,7 +6,7 @@ from setuptools import setup
 description = '↻ 一个用于 mongodb 数据库转换为各类文件格式的库'
 readme = Path(__file__).parent / 'README.md'
 if readme.exists():
-    long_description = readme.read_text()
+    long_description = readme.read_text(encoding='utf_8_sig')
 else:
     long_description = description + '.\n\nSee https://mongo2file.readthedocs.io for documentation.'
 
