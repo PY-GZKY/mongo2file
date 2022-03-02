@@ -42,8 +42,8 @@ def to_excel():
 def to_json():
     result_ = M.to_excel()
     assert "successfully" in result_
-
 ```
+
 
 > 有关更多 [mongo2file](https://mongo2file.readthedocs.io/) 详细信息，请参阅文档。
 
