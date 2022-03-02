@@ -13,8 +13,8 @@ from colorama import init as colorama_init_, Fore
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-from mongo2file.constants import *
-from mongo2file.utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, \
+from .constants import *
+from .utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, \
     json_concurrent_, schema_, no_collection_to_csv_, no_collection_to_excel_, no_collection_to_json_
 
 load_dotenv(verbose=True)
