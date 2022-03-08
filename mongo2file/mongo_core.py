@@ -3,18 +3,19 @@ import math
 import os
 import warnings
 from typing import Optional
+
+import pyarrow as pa
 import pyarrow.csv as pa_csv_
 import pyarrow.feather as pa_feather_
 import pyarrow.parquet as pa_parquet_
-import pyarrow as pa
 import xlsxwriter
 from alive_progress import alive_bar
 from colorama import init as colorama_init_, Fore
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-from .constants import *
-from .utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, \
+from mongo2file.constants import *
+from mongo2file.utils import to_str_datetime, serialize_obj, csv_concurrent_, excel_concurrent_, concurrent_, \
     json_concurrent_, schema_, no_collection_to_csv_, no_collection_to_excel_, no_collection_to_json_
 
 load_dotenv(verbose=True)
@@ -112,41 +113,29 @@ class MongoEngine:
                     if limit != -1 else self.collection_.find(query, {'_id': 0})
 
                 """
-                todo polars
-                [{"a":111,"b":222},{"a":111,"b":222}] -> [{"a":[111,111],"b":[222,222]}]
-                doc_list_ = [list(doc.values()) for doc in doc_list]
-                columns_ = list(doc_list[0].keys())
-                data = pl.DataFrame(doc_list_,columns=columns_)
-                data.to_csv(file=f'{folder_path_}/{filename}', has_header=True)
-
-                todo pandas
+                pandas
                 df_ = DataFrame(data=doc_list)
                 df_.to_csv(path_or_buf=f'{folder_path_}/{filename}', index=False, encoding=PANDAS_ENCODING)
                 """
 
                 doc_list_ = [schema_(doc_) for doc_ in doc_list]
-                # schema_ = pa.schema([
-                #     ('city', pa.string()),
-                #     ('content', pa.string()),
-                #     ('scenic_id', pa.string()),
-                #     ('scenic_name', pa.string()),
-                #     ('username', pa.string()),
-                #     # ('update_date', pa.string())
-                # ])
                 df_ = pa.Table.from_pylist(mapping=doc_list_, schema=None, metadata=None)
                 with pa_csv_.CSVWriter(f'{folder_path_}/{filename}', df_.schema) as writer:
                     writer.write_table(df_)
 
-                # title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
-                # count_ = self.collection_.count_documents(query)
-                # with alive_bar(count_, title=title_, bar="blocks") as bar:
-                # with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
-                #     writer = csv.writer(csvfile)
-                #     writer.writerow(list(dict(doc_list[0]).keys()))
-                #     # writer.writerows([list(dict(data_).values()) for data_ in doc_list])
-                #     for data_ in doc_list:
-                #         writer.writerow(list(dict(data_).values()))
-                #         bar()
+
+                """
+                title_ = f'{Fore.GREEN} {self.collection} → {folder_path_}/{filename}'
+                count_ = self.collection_.count_documents(query)
+                with alive_bar(count_, title=title_, bar="blocks") as bar:
+                with codecs.open(f'{folder_path_}/{filename}', 'w', 'utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(list(dict(doc_list[0]).keys()))
+                    # writer.writerows([list(dict(data_).values()) for data_ in doc_list])
+                    for data_ in doc_list:
+                        writer.writerow(list(dict(data_).values()))
+                        bar()
+                """
 
                 result_ = ECHO_INFO.format(Fore.GREEN, self.collection, f'{folder_path_}/{filename}')
             return result_
@@ -243,9 +232,8 @@ class MongoEngine:
                                 bar()
                         else:
                             for index_, doc in enumerate(doc_objs_):
-                                write_list_ = [doc_ if isinstance(doc_, (int, float)) or doc_ is None else str(doc_) for
-                                               doc_ in
-                                               dict(doc).values()]
+                                write_list_ = [doc_ if isinstance(doc_, IGNORE_TYPE) or doc_ is None else str(doc_) for
+                                               doc_ in dict(doc).values()]
                                 work_sheet_.write_row(f"A{index_ + 2}", write_list_)
                                 bar()
 
@@ -414,7 +402,7 @@ class MongoEngine:
                                            for _ in header_])
             else:
                 [work_sheet_.write_row(f"A{index_ + 2}",
-                                       [doc_ if isinstance(doc_, (int, float)) or doc_ is None else str(doc_) for doc_
+                                       [doc_ if isinstance(doc_, IGNORE_TYPE) or doc_ is None else str(doc_) for doc_
                                         in
                                         dict(doc).values()]) for
                  index_, doc in enumerate(doc_objs_)]
@@ -457,5 +445,3 @@ class MongoEngine:
     def get_collection_objs_(self):
         return [{"collection_name": collection_name, "collection_": self.db_[collection_name]} for
                 collection_name in self.collection_names]
-
-
