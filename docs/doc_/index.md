@@ -16,6 +16,10 @@
 
 如果您在 `Windows` 上遇到任何的导入问题或错误，您可能需要安装 `Visual Studio 2015`。
 
+> 警告:
+> 
+> `PyArrow` 目前只支持到 `win64` 位 ( Python `64bit` ) 操作系统。
+
 其次, 除了常见的 `csv`、`excel`、以及 `json` 文件格式之外, `mongo2file` 还支持导出 `pickle`、`feather`、`parquet` 的二进制压缩文件。
 
 `pickle`、`feather`、`parquet` 是 `Python` 序列化数据的一种文件格式, 它把数据转成二进制进行存储。 从而大大减少的读取的时间。
