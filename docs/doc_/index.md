@@ -126,9 +126,6 @@ def to_json():
 
 当 `MongoEngine` 控制类只指定了 `mongodb` 库名称时、将对数据库下所有集合进行导出操作。
 
-## 关于命令行
-
-> 待开发
 
 ## `mongo2file` 的改进
 
