@@ -65,7 +65,6 @@ setup(
         'pytest==6.2.5',
         'python-dotenv==0.19.2',
         'python_dateutil==2.8.2',
-        'setuptools==60.0.3',
         'XlsxWriter==3.0.2'
     ],
 )
