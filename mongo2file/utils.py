@@ -59,7 +59,7 @@ def serialize_obj(obj):
 
 
 def schema_(obj: dict):
-    return {k: v for k, v in obj.items() if isinstance(v, str)}
+    return {k: v if isinstance(v, str) else str(v) for k, v in obj.items()}
 
 
 def no_collection_to_csv_(collection_obj_: dict, folder_path: str, _id: bool = False,
